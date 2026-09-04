@@ -1,0 +1,117 @@
+TATA ELECTRIC VEHICLE KNOWLEDGE BASE
+
+Data last verified: 10 August 2026
+Country: India
+
+Important instructions:
+- Certified range and real-world range are different measurements.
+- Actual range depends on driving style, traffic, weather, load and AC usage.
+- Prices vary by city, variant, taxes and current offers.
+- For the latest price, customer should contact an authorised Tata.ev dealer.
+
+--------------------------------------------------
+VEHICLE: TATA PUNCH.EV
+--------------------------------------------------
+
+Vehicle type: Compact electric SUV
+Seating capacity: 5 passengers
+Boot space: 366 litres
+
+Battery options:
+1. Punch.ev 30: 30 kWh battery
+2. Punch.ev 40: 40 kWh battery
+
+Certified range:
+- Punch.ev 30: approximately 365–375 km MIDC P1+P2
+- Punch.ev 40: 468 km MIDC P1+P2
+
+Estimated real-world C75 range:
+- Punch.ev 30: approximately 260–275 km
+- Punch.ev 40: approximately 335–355 km
+
+Charging:
+- Punch.ev 40 can charge from 20% to 80% in approximately 26 minutes using a supported DC fast charger.
+- A 15-minute fast-charge top-up can add approximately 135 km of C75 range under specified conditions.
+
+Important features:
+- LFP prismatic battery cells
+- Blind Spot View Monitor
+- HARMAN infotainment system
+- Arcade.ev application suite
+- Multiple charging options
+
+Official source:
+https://ev.tatamotors.com/punch/ev.html
+
+--------------------------------------------------
+VEHICLE: TATA NEXON.EV 45
+--------------------------------------------------
+
+Vehicle type: Compact electric SUV
+Battery: Nexon.ev 45 battery version
+Certified range: 489 km MIDC P1+P2
+Estimated real-world C75 range: approximately 350–375 km
+
+Performance:
+- Motor power: 106 kW
+- Torque: 215 Nm
+- Acceleration from 0 to 100 km/h: approximately 8.9 seconds
+- Drive modes: Eco, City and Sport
+- Multiple regenerative-braking modes
+
+Charging:
+- A supported 60 kW DC fast charger can charge the battery from 10% to 80% in approximately 40 minutes.
+- A 7.2 kW AC home wall-box charger can charge from 10% to 100% in approximately 6 hours and 36 minutes under specified conditions.
+
+Important features:
+- Liquid-cooled IP67-rated battery pack
+- Generation-2 electric motor
+- Regenerative-braking paddle shifters
+- Voice-assisted sunroof
+- Connected vehicle features
+
+Official source:
+https://ev.tatamotors.com/nexon/ev.html
+
+--------------------------------------------------
+VEHICLE: TATA CURVV.EV
+--------------------------------------------------
+
+Vehicle type: Electric SUV coupe
+Seating capacity: 5 passengers
+Boot space: approximately 500 litres
+Front storage or frunk: approximately 11.6 litres
+
+Battery options:
+1. Curvv.ev 45: 45 kWh battery
+2. Curvv.ev 55: 55 kWh battery
+
+Certified range:
+- Curvv.ev 45: 430 km MIDC P1+P2
+- Curvv.ev 55: 502 km MIDC P1+P2
+
+Estimated real-world C75 range:
+- Curvv.ev 45: approximately 330–350 km
+- Curvv.ev 55: approximately 400–425 km
+
+Performance:
+- Curvv.ev 45 power: 110 kW
+- Curvv.ev 55 power: 123 kW
+- Torque: 215 Nm
+- Drive modes: Eco, City and Sport
+- Multiple regenerative-braking modes
+
+Charging:
+- Supports up to 70 kW DC fast charging.
+- DC fast charging from 10% to 80% takes approximately 40 minutes under specified conditions.
+- Supports a 7.2 kW AC home wall-box charger.
+
+Important features:
+- Generation-2 electric motor
+- Liquid-cooled IP67-rated battery
+- Panoramic sunroof on supported variants
+- Connected vehicle technology
+- Regenerative-braking paddle shifters
+
+Official source:
+https://ev.tatamotors.com/curvv/ev.html

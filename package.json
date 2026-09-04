@@ -1,0 +1,25 @@
+{
+  "name": "tata-motors-ev-fullstack_4",
+  "version": "1.0.0",
+  "description": "> A production-ready full-stack SaaS application for AI-powered Electric Vehicle customer interactions.",
+  "main": "index.js",
+  "scripts": {
+    "frontend": "cd frontend && npm start",
+    "backend": "npm --prefix backend run dev",
+    "rag:start": "python -m uvicorn app:app --app-dir rag-service --reload --port 8000",
+    "rag:ingest": "python rag-service/ingest.py",
+    "setup:node": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "setup:rag": "python -m pip install -r rag-service/requirements.txt",
+    "dev": "concurrently -n BACKEND,FRONTEND \"npm --prefix backend run dev\" \"npm --prefix frontend start\"",
+    "dev:all": "concurrently -n BACKEND,FRONTEND,RAG \"npm --prefix backend run dev\" \"npm --prefix frontend start\" \"npm run rag:start\"",
+    "test": "npm --prefix backend test",
+    "verify": "npm test && npm --prefix frontend run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

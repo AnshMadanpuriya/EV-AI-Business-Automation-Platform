@@ -1,0 +1,211 @@
+BRAND: Mahindra
+MARKET: India
+LAST VERIFIED: 2026-08-10
+DATA POLICY: Official Mahindra information only.
+
+
+Vehicle: Mahindra BE 6
+
+Body type:
+- Electric coupe-style SUV
+- Built on Mahindra INGLO electric platform
+
+Battery options:
+- 59 kWh
+- 79 kWh
+
+Certified range:
+- 59 kWh: 557 km ARAI MIDC P1+P2
+- 79 kWh: 683 km ARAI MIDC P1+P2
+
+Mahindra internal real-world range:
+- 59 kWh: approximately 400 km
+- 79 kWh: approximately 500 km
+
+Real-world range disclaimer:
+- Figures are based on Mahindra internal city testing with AC on.
+- Actual range varies with speed, temperature, terrain,
+  vehicle load, AC usage and driving behaviour.
+
+Charging:
+- 7.2 kW wall-box charger supported
+- 11.2 kW wall-box charger supported
+- Charger and installation may be sold separately.
+
+BE 6 Formula Edition charging:
+- Battery: 79 kWh
+- 20% to 80% charging in approximately 20 minutes
+  using a compatible 180 kW DC fast charger.
+
+BE 6 Formula Edition performance:
+- Maximum power: 210 kW
+- Multiple drive modes
+- Boost Mode
+- Multi-step regeneration
+- One-touch single-pedal driving
+
+Important features:
+- Fixed glass Infinity Roof
+- Electric power steering
+- iLink front suspension
+- 5-link rear suspension
+- Frequency Dependent Damping
+- Low rolling-resistance tyres
+- Cruise control
+- Regenerative braking
+- Virtual engine sounds
+- Connected vehicle technology
+
+Battery warranty:
+- Lifetime battery warranty may apply to the first registered
+  owner under Mahindra’s published terms and conditions.
+- For a subsequent owner, the stated battery warranty is
+  10 years or 200,000 km from the original delivery date,
+  whichever occurs first.
+- Warranty eligibility and conditions must be confirmed
+  with Mahindra before purchase.
+
+Official sources:
+https://www.mahindraelectricsuv.com/tnc.html
+https://www.mahindraelectricsuv.com/press-releases/be6-formula-edition-pr.html
+
+
+Vehicle: Mahindra XEV 9e
+
+Body type:
+- Electric coupe-style SUV
+- Built on Mahindra INGLO electric platform
+
+Motor:
+- Interior Permanent Magnet Synchronous Motor (IPMSM)
+
+Battery options:
+- 59 kWh
+- 79 kWh
+
+Maximum power:
+- 59 kWh configuration: 170 kW
+- 79 kWh configuration: 210 kW
+
+Maximum torque:
+- 380 Nm
+
+Transmission:
+- Single-speed transmission
+
+Charging:
+- 3 kW portable EVSE supported
+- 7.2 kW wall-box charger supported
+- 11 kW wall-box charger supported
+- 11 kW liquid-cooled onboard charger
+- CCS2 charging port
+
+Owner-manual range guidance:
+- Typical city range under specified standard conditions:
+  approximately 450 to 500 km
+- Typical highway range under specified standard conditions:
+  approximately 350 to 400 km
+- Extended high-speed driving above 120 km/h:
+  range may be below 300 km
+
+Range guidance conditions:
+- Driver plus one passenger
+- Default or Range driving mode
+- Regeneration level 1 or 2
+- AC set to approximately 23–24 degrees Celsius
+- Figures are guidance, not guaranteed certified range values.
+
+Factors affecting range:
+- Four or more passengers can reduce range by approximately 10–15%.
+- Temperatures above 35 degrees Celsius can reduce city range
+  by up to 25% and highway range by up to 15%.
+- Temperatures below 15 degrees Celsius can reduce range
+  by up to 15%.
+- Uphill terrain may reduce range by approximately 20–25%,
+  depending on gradient and duration.
+- High speed, rain, snow, aggressive acceleration,
+  heavy vehicle load and AC usage reduce range.
+
+Suspension:
+- Independent front suspension with iLink technology
+- Independent 5-link rear suspension
+- Semi-active suspension available on supported variants
+
+Brakes:
+- Front and rear disc brakes
+- ABS
+- Electronic Stability Program
+- Electric Parking Brake
+
+Wheels:
+- 19-inch wheels
+- Optional 20-inch wheels on supported variants
+
+Important features:
+- Coast-to-coast triple display on supported variants
+- Harman Kardon audio with Dolby Atmos on supported variants
+- Infinity Roof
+- Multi-colour ambient lighting
+- Connected vehicle technology
+- Regenerative braking
+- One-pedal driving
+- Remote cabin cooling and heating
+- 360-degree camera on supported variants
+- Advanced parking assistance on supported variants
+
+Official source:
+https://www.mahindraelectricsuv.com/on/demandware.static/-/Library-Sites-eSUVSharedLibrary/default/dwb3fe0209/OwnerManual/XEV_9e_HTML/XEV9e-OM.html
+
+
+Vehicle: Mahindra XUV 3XO EV
+
+Variants:
+- AX5
+- AX7L
+
+Body type:
+- Compact electric SUV
+
+Battery:
+- 39.4 kWh
+
+Mahindra stated real-world range:
+- Up to 285 km
+
+Range disclaimer:
+- Actual range varies with weather, traffic, temperature,
+  vehicle load, AC usage and driving behaviour.
+
+Performance:
+- Maximum power: 110 kW
+- Maximum torque: 310 Nm
+- 0 to 100 km/h: 8.3 seconds
+
+Charging:
+- 0% to 80% in approximately 50 minutes
+  using a compatible 50 kW DC fast charger.
+
+Drive modes:
+- Fun
+- Fast
+- Fearless
+
+Important features:
+- Level 2 ADAS on supported variants
+- Lane Keep Assist
+- Automatic Emergency Braking
+- Adaptive Cruise Control with stop-and-go
+- Smart Pilot Assist
+- High Beam Assist
+- 360-degree surround-view camera
+- Blind View Monitor
+- Front parking assistance
+- Adrenox connected-car technology
+- Built-in Alexa
+- Harman Kardon 7-speaker audio
+- Dolby Atmos
+- Frequency Dependent Damping suspension
+- 65 W USB-C charging
+
+Official source:
+https://auto.mahindra.com/press-release/mahindra-introduces-xuv-3xo-ev-range.html

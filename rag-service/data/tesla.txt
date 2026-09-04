@@ -1,0 +1,182 @@
+BRAND: Tesla
+MARKET: India
+LAST VERIFIED: 2026-08-10
+DATA POLICY: Only official Tesla India specifications are included.
+
+
+Vehicle: Tesla Model Y Premium
+
+Model:
+- Model Y Premium Rear-Wheel Drive
+
+Body type:
+- Electric midsize SUV
+
+Drive:
+- Rear-Wheel Drive
+- Single-motor configuration
+
+Certified range:
+- 500 km WLTP
+
+Important range note:
+- WLTP range is a laboratory certification value.
+- Actual range depends on speed, weather, elevation, driving style,
+  vehicle configuration, temperature and charging conditions.
+- An official India-specific real-world range figure is not published.
+
+Performance:
+- 0 to 100 km/h: 5.9 seconds
+
+Charging:
+- Maximum Supercharging power: 175 kW
+- Up to 238 km of range can be added in 15 minutes.
+- The 15-minute figure is based on constant-speed data.
+- Actual charging speed varies with battery temperature,
+  state of charge and charger conditions.
+
+Battery:
+- Official usable battery capacity is not listed on the Tesla India page.
+- Do not invent or estimate battery capacity.
+
+Seating:
+- Up to 5 adults
+
+Storage:
+- 2,138 litres
+
+Displays:
+- 16-inch centre touchscreen
+- 8-inch rear touchscreen
+
+Wheels:
+- 19-inch wheels
+
+Ground clearance:
+- 167 mm
+
+Dimensions:
+- Length: 4,790 mm
+- Height: 1,624 mm
+- Width with folded mirrors: 1,982 mm
+- Width with extended mirrors: 2,129 mm
+- Weight: 1,928 kg
+
+Important features:
+- All-glass roof
+- Front and rear touchscreens
+- HEPA air filtration
+- Heated seats
+- Power-reclining rear seats
+- Wraparound ambient lighting
+- Hands-free powered trunk
+- Tesla mobile-app connectivity
+- Phone key
+- Remote climate control
+- Sentry Mode
+- Charging schedule and monitoring
+- Automatic Emergency Braking
+- Forward Collision Warning
+- Lane Departure Avoidance
+- Blind Spot Monitoring
+- Front-facing cameras
+
+Driver assistance warning:
+- Full Self-Driving Capability is a driver-assistance system.
+- It does not make the vehicle fully autonomous.
+- The driver must remain attentive and responsible.
+
+Warranty:
+- Basic vehicle: 4 years or 80,000 km, whichever comes first
+- Battery and drive unit: 8 years or 160,000 km,
+  whichever comes first
+
+Official source:
+https://www.tesla.com/en_in/modely
+
+
+Vehicle: Tesla Model Y L Premium
+
+Model:
+- Model Y L Premium
+- Long-wheelbase configuration
+
+Body type:
+- Three-row electric midsize SUV
+
+Drive:
+- Dual Motor All-Wheel Drive
+
+Certified range:
+- 681 km WLTP
+
+Important range note:
+- WLTP range is a laboratory certification value.
+- Actual range depends on weather, speed, elevation,
+  vehicle load and driving conditions.
+- An official India-specific real-world range figure is not published.
+
+Performance:
+- 0 to 100 km/h: 5.0 seconds
+
+Charging:
+- Maximum Supercharging power: 250 kW
+- Up to 288 km of range can be added in 15 minutes.
+- Actual charging speed depends on charger, battery temperature
+  and state of charge.
+
+Battery:
+- Official usable battery capacity is not listed on the Tesla India page.
+- Do not invent or estimate battery capacity.
+
+Seating:
+- Up to 6 adults
+- Three seating rows
+- Second-row captain seats
+
+Storage:
+- 2,539 litres
+
+Displays:
+- 16-inch front touchscreen
+- 8-inch second-row touchscreen
+
+Wheels:
+- 19-inch wheels
+
+Ground clearance:
+- 169 mm
+
+Dimensions:
+- Length: 4,969 mm
+- Height: 1,668 mm
+- Width with folded mirrors: 1,982 mm
+- Width with extended mirrors: 2,129 mm
+- Weight: 2,088 kg
+
+Important features:
+- Adaptive suspension
+- Electronic damping
+- Acoustic glass
+- Three-row climate control
+- Heated and ventilated first-row seats
+- Heated and ventilated second-row captain seats
+- Power-reclining second and third rows
+- 19-speaker Tesla Audio system
+- Automatic Emergency Braking
+- Forward Collision Warning
+- Lane Departure Avoidance
+- Blind Spot Monitoring
+- Front-facing cameras
+
+Driver assistance warning:
+- Full Self-Driving Capability requires active driver supervision.
+- It does not make the vehicle autonomous.
+
+Warranty:
+- Basic vehicle: 4 years or 80,000 km, whichever comes first
+- Battery and drive unit: 8 years or 192,000 km,
+  whichever comes first
+
+Official source:
+https://www.tesla.com/en_in/modely

@@ -1,0 +1,141 @@
+HYUNDAI ELECTRIC VEHICLES — INDIA
+Last verified: 10 August 2026
+Source type: Hyundai India official pages
+
+==================================================
+MODEL: HYUNDAI CRETA ELECTRIC
+==================================================
+
+Category:
+- Electric SUV
+- Available with two battery options
+
+Battery:
+- Standard battery: 42 kWh
+- Long-range battery: 51.4 kWh
+- Battery type: Liquid-cooled lithium-ion
+
+Certified range:
+- 42 kWh: 420 km MIDC P1+P2 certified range
+- 51.4 kWh: 510 km MIDC P1+P2 certified range
+
+Range warning:
+- These are certified test-cycle figures.
+- Actual range depends on speed, traffic, weather, AC usage,
+  driving style, elevation, tyre pressure and vehicle load.
+- Do not present certified range as guaranteed real-world range.
+
+Motor and power:
+- Motor type: Interior Permanent Magnet Synchronous Motor (IPMSM)
+- 42 kWh maximum power: 99 kW / 135 PS
+- 51.4 kWh maximum power: 126 kW / 171 PS
+- Long-range version claimed 0–100 km/h time: 7.9 seconds
+
+Charging:
+- Charging connector: CCS2
+- 7.4 kW AC charging, 10–100 percent:
+  - 42 kWh: approximately 6 hours
+  - 51.4 kWh: approximately 7 hours 15 minutes
+- DC fast charging above 100 kW, 10–80 percent:
+  - Approximately 39 minutes for both batteries
+- Charging time can change because of charger output,
+  battery temperature and charging conditions.
+
+Dimensions:
+- Length: 4,340 mm
+- Width: 1,790 mm
+- Height: 1,655 mm
+- Wheelbase: 2,610 mm
+
+Wheels and brakes:
+- 17-inch aero alloy wheels
+- Low rolling-resistance tyres
+- Front disc brakes
+- Rear disc brakes
+
+Important features:
+- Vehicle-to-Load or V2L on supported variants/configurations
+- Level 2 ADAS through Hyundai SmartSense on supported variants
+- i-Pedal driving
+- Regenerative-braking paddle shifters
+- Digital Key on supported variants
+- Eco, Normal and Sport drive modes
+- Dual-zone automatic climate control
+- Panoramic sunroof on supported variants
+- Ventilated front seats on supported variants
+- 10.25-inch digital instrument cluster
+- 10.25-inch navigation infotainment system
+- Bose 8-speaker audio on supported variants
+- Wireless Android Auto and Apple CarPlay
+- Hyundai Bluelink connected-car technology
+- OTA updates on supported variants
+
+Battery warranty:
+- 8 years or 160,000 km, subject to Hyundai warranty terms
+
+==================================================
+MODEL: HYUNDAI IONIQ 5
+==================================================
+
+Category:
+- Premium electric crossover
+- Built on Hyundai E-GMP electric vehicle platform
+
+Battery:
+- Battery capacity: 84 kWh
+- Battery type: Liquid-cooled lithium-ion
+- Battery heating system
+- Drivetrain: Rear-wheel drive
+
+Motor and power:
+- Motor type: Permanent Magnet Synchronous Motor
+- Maximum power: 168 kW
+- Maximum power equivalent: 228.5 PS
+- Transmission: Single-speed reduction gear
+
+Charging:
+- 11 kW AC charging, 10–100 percent:
+  - Approximately 7 hours 35 minutes
+- 350 kW DC ultra-fast charging, 10–80 percent:
+  - Approximately 18 minutes
+- Actual charging time depends on charger availability,
+  charger output, battery temperature and environmental conditions.
+
+Dimensions:
+- Length: 4,655 mm
+- Width: 1,890 mm
+- Height: 1,625 mm
+- Wheelbase: 3,000 mm
+
+Wheels:
+- 20-inch aero alloy wheels
+
+Important features:
+- Hyundai E-GMP dedicated EV platform
+- Vehicle-to-Load capability on supported configuration
+- Long wheelbase and flexible interior
+- Ultra-fast 800-volt-class charging architecture
+- Advanced battery and structural safety systems
+
+IONIQ 5 range rule:
+- A verified certified-range value was not present in the reviewed
+  Hyundai India specification table used for this dataset.
+- The chatbot must not invent or estimate an official certified range.
+- If asked for the current certified range, advise the user to confirm
+  it from the latest Hyundai India brochure or official product page.
+
+==================================================
+COMPARISON RULES
+==================================================
+
+- CRETA Electric offers 42 kWh and 51.4 kWh battery choices.
+- CRETA Electric 51.4 kWh has a higher certified range than its
+  42 kWh version.
+- IONIQ 5 has the larger 84 kWh battery and supports much faster
+  charging when a compatible 350 kW charger is available.
+- Do not compare vehicles only using battery capacity.
+- Also compare certified range, charging time, power, size,
+  features, warranty, price and intended use.
+- Never describe certified range as guaranteed real-world range.
+- Never invent missing price, range, variant or charging information.
+- Prices and variants can change; confirm them from Hyundai India.

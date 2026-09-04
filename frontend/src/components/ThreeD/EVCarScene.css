@@ -1,0 +1,100 @@
+.ev-3d-scene {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(0, 102, 255, 0.2),
+      transparent 45%
+    ),
+    linear-gradient(145deg, #020617, #050b18);
+
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-radius: 24px;
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    inset 0 0 50px rgba(0, 102, 255, 0.08);
+}
+
+.ev-3d-scene canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.ev-3d-scene canvas:active {
+  cursor: grabbing;
+}
+
+.ev-3d-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  z-index: 5;
+
+  transform: translateX(-50%);
+  padding: 9px 18px;
+
+  color: #bfefff;
+  background: rgba(3, 15, 30, 0.78);
+  border: 1px solid rgba(0, 217, 255, 0.35);
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(0, 217, 255, 0.12);
+
+  pointer-events: none;
+  animation: hintGlow 2s ease-in-out infinite;
+}
+
+@keyframes hintGlow {
+  0%,
+  100% {
+    opacity: 0.72;
+    box-shadow: 0 0 12px rgba(0, 217, 255, 0.1);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 26px rgba(0, 217, 255, 0.28);
+  }
+}
+
+@media (max-width: 768px) {
+  .ev-3d-scene {
+    height: 390px;
+    border-radius: 18px;
+  }
+
+  .ev-3d-hint {
+    bottom: 14px;
+    padding: 7px 14px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ev-3d-scene {
+    height: 330px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-3d-hint {
+    animation: none;
+  }
+}

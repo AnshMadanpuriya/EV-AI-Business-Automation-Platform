@@ -1,0 +1,135 @@
+{
+  "_comment": "Tata Motors EV — n8n Webhook Flow Documentation",
+
+  "webhookEndpoint": "POST http://localhost:5678/webhook/ev-agent",
+
+  "incomingPayload": {
+    "sessionId": "session_1720123456_abc123",
+    "message": "I want to book a test ride for Nexon EV this weekend",
+    "visitorName": "Rahul Kumar",
+    "visitorEmail": "rahul@example.com",
+    "timestamp": "2025-07-20T10:30:00.000Z",
+    "messageHistory": [
+      { "role": "user", "content": "Hi, I'm interested in EVs" },
+      { "role": "assistant", "content": "Hello! Welcome to Tata Motors EV. I can help with test rides, pricing, and more. What are you looking for?" }
+    ],
+    "metadata": {
+      "source": "chatbot",
+      "product": "Tata Motors EV Agent",
+      "pageUrl": "https://tatamotorsev.ai"
+    }
+  },
+
+  "expectedResponse": {
+    "response": "Great choice! I'd love to schedule a test ride for you in the Nexon EV. 🚗 Please share your preferred date (this Sat/Sun), time slot, and nearest city so I can book it right away. The Nexon EV offers up to 437 km range and fast charging capability!",
+    "intent": "test-ride",
+    "confidence": 0.94,
+    "leadScore": 8,
+    "suggestedActions": ["schedule_test_ride", "send_brochure", "notify_sales_agent"]
+  },
+
+  "n8nWorkflowNodes": [
+    {
+      "id": "1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300],
+      "parameters": {
+        "path": "ev-agent",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.set",
+      "position": [460, 300],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "message", "value": "={{$json.message}}" },
+            { "name": "sessionId", "value": "={{$json.sessionId}}" },
+            { "name": "visitorName", "value": "={{$json.visitorName}}" },
+            { "name": "history", "value": "={{JSON.stringify($json.messageHistory)}}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3",
+      "name": "AI Agent (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [680, 300],
+      "parameters": {
+        "model": "gpt-4o",
+        "systemPrompt": "You are TataEV AI, a helpful and knowledgeable assistant for Tata Motors Electric Vehicles. You help customers with: 1) Vehicle information (Nexon EV, Tiago EV, Punch EV, Tigor EV), 2) Test ride bookings, 3) Charging and range queries, 4) Service and maintenance, 5) Pricing and EMI options. Always be friendly, concise, and helpful. If a customer wants to book a test ride, collect: name, phone, preferred date, preferred city. Respond in 2-3 sentences max.",
+        "userMessage": "={{$json.message}}\n\nConversation history: {{$json.history}}\n\nCustomer name: {{$json.visitorName}}"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Detect Intent",
+      "type": "n8n-nodes-base.code",
+      "position": [900, 300],
+      "parameters": {
+        "jsCode": "const message = $input.first().json.message?.toLowerCase() || '';\nconst response = $input.first().json.response || '';\n\nlet intent = 'general';\nlet leadScore = 3;\n\nif (message.includes('test ride') || message.includes('test drive') || message.includes('drive')) { intent = 'test-ride'; leadScore = 8; }\nelse if (message.includes('buy') || message.includes('purchase') || message.includes('price') || message.includes('cost') || message.includes('lakh')) { intent = 'purchase'; leadScore = 9; }\nelse if (message.includes('charg') || message.includes('battery') || message.includes('range')) { intent = 'charging'; leadScore = 5; }\nelse if (message.includes('service') || message.includes('repair') || message.includes('maintenance')) { intent = 'service'; leadScore = 6; }\n\nreturn [{ json: { ...$input.first().json, intent, leadScore } }];"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Save to MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "position": [1120, 400],
+      "parameters": {
+        "operation": "insert",
+        "collection": "chatsessions",
+        "fields": "sessionId,message,intent,leadScore,timestamp"
+      }
+    },
+    {
+      "id": "6",
+      "name": "High Intent? Notify Sales",
+      "type": "n8n-nodes-base.if",
+      "position": [1120, 200],
+      "parameters": {
+        "conditions": {
+          "number": [{ "value1": "={{$json.leadScore}}", "operation": "largerEqual", "value2": 8 }]
+        }
+      }
+    },
+    {
+      "id": "7",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1340, 140],
+      "parameters": {
+        "channel": "#ev-hot-leads",
+        "text": "🔥 High-Intent Lead!\nCustomer: {{$json.visitorName}}\nIntent: {{$json.intent}}\nMessage: {{$json.message}}\nLead Score: {{$json.leadScore}}/10"
+      }
+    },
+    {
+      "id": "8",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1340, 300],
+      "parameters": {
+        "responseBody": "={\"response\": \"{{$json.response}}\", \"intent\": \"{{$json.intent}}\", \"leadScore\": {{$json.leadScore}}}",
+        "responseHeaders": { "Content-Type": "application/json" }
+      }
+    }
+  ],
+
+  "setupInstructions": [
+    "1. Install n8n: npm install -g n8n OR use npx n8n",
+    "2. Start n8n: n8n start",
+    "3. Open http://localhost:5678",
+    "4. Create new workflow",
+    "5. Import the nodes above OR manually recreate",
+    "6. Set webhook path to 'ev-agent'",
+    "7. Configure OpenAI credentials (API key required)",
+    "8. Configure MongoDB connection (or use n8n's built-in data store)",
+    "9. Activate the workflow",
+    "10. Set N8N_WEBHOOK_URL=http://localhost:5678/webhook/ev-agent in backend .env"
+  ]
+}

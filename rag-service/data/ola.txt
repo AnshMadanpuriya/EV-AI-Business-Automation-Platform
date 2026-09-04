@@ -1,0 +1,391 @@
+OLA ELECTRIC VEHICLES — INDIA
+Last verified: 10 August 2026
+Primary source: Ola Electric official website
+
+==================================================
+MODEL FAMILY: OLA S1 PRO AND S1 PRO+
+==================================================
+
+Category:
+- Premium electric scooter
+- Two-seat electric two-wheeler
+
+--------------------------------------------------
+VARIANT: OLA S1 PRO+ 5.2 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 5.2 kWh
+
+Certified range:
+- IDC range: 320 km
+- This is a certified test-cycle figure, not guaranteed real-world range
+
+Motor:
+- Motor type: Mid-drive IPM
+- Nominal power: 5.5 kW
+- Peak power: 13 kW
+
+Performance:
+- Top speed: 130 km/h
+- Acceleration 0–40 km/h: 2.1 seconds
+- Acceleration 0–60 km/h: 3.4 seconds
+- Claimed gradeability: 24 degrees
+
+Home charging:
+- 0–80 percent: approximately 4 hours 30 minutes
+- Portable charger rating: 750 W
+- Charging time varies with temperature, voltage and battery condition
+
+Drive modes:
+- Eco
+- Normal
+- Sports
+- Hyper
+
+Dimensions:
+- Length: 1,899 mm
+- Width: 850 mm
+- Height: 1,297 mm
+- Wheelbase: 1,359 mm
+- Ground clearance: 160 mm
+- Seat height: 791 mm
+- Kerb weight: approximately 118 kg
+
+Storage:
+- Boot space: 34 litres
+
+Important features:
+- Seven-inch touchscreen instrument cluster
+- Digital key and keyless operation
+- Navigation
+- Bluetooth connectivity
+- GPS connectivity
+- Ola Electric app controls
+- Cruise control on supported configuration
+- Reverse mode
+- Advanced regenerative braking
+- OTA software updates
+- Vacation mode
+- Predictive-maintenance features
+
+Brakes and suspension:
+- Front disc brake
+- Rear disc brake
+- ABS
+- Twin telescopic front suspension
+- Rear monoshock
+- 12-inch alloy wheels
+
+--------------------------------------------------
+VARIANT: OLA S1 PRO+ 4 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 4 kWh
+
+Certified range:
+- IDC range: 242 km
+
+Motor and performance:
+- Nominal motor power: 5.5 kW
+- Peak motor power: 13 kW
+- Top speed: 128 km/h
+- Acceleration 0–40 km/h: 2.3 seconds
+- Acceleration 0–60 km/h: 4.1 seconds
+- Claimed gradeability: 22.6 degrees
+
+Home charging:
+- 0–80 percent: approximately 4 hours 50 minutes
+- Portable charger rating: 750 W
+
+Storage:
+- Boot space: 34 litres
+
+Drive modes:
+- Eco
+- Normal
+- Sports
+- Hyper
+
+--------------------------------------------------
+VARIANT: OLA S1 PRO 4 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 4 kWh
+
+Certified range:
+- IDC range: 242 km
+
+Motor and performance:
+- Nominal motor power: 5.5 kW
+- Peak motor power: 11 kW
+- Top speed: 125 km/h
+- Acceleration 0–40 km/h: 2.7 seconds
+- Acceleration 0–60 km/h: 4.3 seconds
+- Claimed gradeability: 17 degrees
+
+Home charging:
+- 0–80 percent: approximately 4 hours 50 minutes
+- Portable charger rating: 750 W
+
+Dimensions:
+- Length: 1,900 mm
+- Width: 850 mm
+- Height: 1,288 mm
+- Wheelbase: 1,359 mm
+- Ground clearance: 160 mm
+- Seat height: 791 mm
+- Kerb weight: approximately 113 kg
+
+Storage:
+- Boot space: 34 litres
+
+Drive modes:
+- Eco
+- Normal
+- Sports
+- Hyper
+
+Braking:
+- Front disc brake
+- Rear disc brake
+- CBS on the reviewed configuration
+
+S1 Pro family warranty:
+- Base scooter warranty: 3 years or 40,000 km on listed configurations
+- Battery warranty may be listed as 3 years or 50,000 km
+- Extended warranty may be available up to 8 years or 125,000 km
+- Exact coverage depends on variant, purchase date and warranty plan
+
+==================================================
+MODEL FAMILY: OLA S1 X AND S1 X+
+==================================================
+
+Category:
+- Value-focused electric scooter
+- Available with multiple battery capacities
+
+Available battery configurations:
+- S1 X: 2 kWh
+- S1 X: 3 kWh
+- S1 X: 4 kWh
+- S1 X+: 4 kWh
+- Other capacities may be introduced or changed by Ola
+
+Verified 4 kWh range:
+- S1 X 4 kWh IDC range: up to 242 km
+- Certified range is not guaranteed real-world range
+
+Fast charging:
+- Hypercharger support is available on supported S1 X Gen 3 variants
+- Claimed charging from 10–70 percent: approximately 35 minutes
+- Confirm fast-charging compatibility for the exact variant before purchase
+
+Warranty:
+- Scooter warranty: 3 years or 40,000 km
+- Battery warranty: 3 years or 50,000 km
+- Whichever occurs first
+- Extended warranty may be available up to 8 years or 125,000 km
+
+Possible features depending on variant:
+- Side-stand alert
+- Reverse mode
+- Eco mode
+- Normal mode
+- Sport mode
+- OTA updates
+- Vacation mode
+- Regenerative braking
+- Bluetooth
+- GPS connectivity
+- Navigation
+- Cruise control
+- Ola Electric app controls
+- Remote boot unlock
+
+S1 X accuracy rule:
+- Do not apply 242 km range to every S1 X battery option
+- The 2 kWh and 3 kWh variants have different range and performance
+- Ask the user for the exact battery capacity before comparing
+- Confirm specifications from the current Ola variant page
+
+==================================================
+MODEL FAMILY: OLA ROADSTER X
+==================================================
+
+Category:
+- Electric motorcycle
+
+--------------------------------------------------
+VARIANT: ROADSTER X+ 9.1 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 9.1 kWh
+
+Certified range:
+- Up to 500 km IDC
+- This is a certified test-cycle value
+- Actual road range will depend heavily on speed and riding conditions
+
+Performance:
+- Peak power: 11 kW
+- Top speed: 125 km/h
+- Acceleration 0–40 km/h: 2.7 seconds
+
+Charging:
+- 0–80 percent: approximately 8 hours
+
+Ride modes:
+- Eco
+- Normal
+- Sport
+
+Braking:
+- Front disc brake
+- Brake-by-wire technology
+- Regenerative braking
+
+Battery warranty:
+- 3 years or 50,000 km
+- Whichever occurs first
+
+--------------------------------------------------
+VARIANT: ROADSTER X+ 4.5 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 4.5 kWh
+
+Certified range:
+- 252 km IDC
+
+Performance:
+- Peak power: 11 kW
+- Top speed: 125 km/h
+- Acceleration 0–40 km/h: 2.7 seconds
+
+Charging:
+- 0–80 percent: approximately 5.9 hours
+
+Ride modes:
+- Eco
+- Normal
+- Sport
+
+Battery warranty:
+- 3 years or 50,000 km
+
+--------------------------------------------------
+VARIANT: ROADSTER X 4.5 kWh
+--------------------------------------------------
+
+Battery:
+- Capacity: 4.5 kWh
+
+Certified range:
+- 252 km IDC
+
+Performance:
+- Peak power: 7 kW
+- Top speed: 118 km/h
+- Acceleration 0–40 km/h: 3.1 seconds
+
+Charging:
+- 0–80 percent: approximately 5.9 hours
+
+Ride modes:
+- Eco
+- Normal
+- Sport
+
+Battery warranty:
+- 3 years or 50,000 km
+
+Other Roadster X configurations:
+- Roadster X 2.5 kWh
+- Roadster X 3.5 kWh
+- Exact range, speed and charging figures differ by battery variant
+
+Roadster X smart features:
+- MoveOS software
+- Cruise control
+- Parking assistance
+- Regenerative braking
+- Ride statistics
+- Vacation mode
+- OTA software updates
+- Eco, Normal and Sport ride modes
+
+==================================================
+COMPARISON SUMMARY
+==================================================
+
+S1 Pro+ 5.2 kWh:
+- Vehicle type: Electric scooter
+- Certified range: 320 km IDC
+- Top speed: 130 km/h
+- Peak power: 13 kW
+
+S1 Pro+ 4 kWh:
+- Vehicle type: Electric scooter
+- Certified range: 242 km IDC
+- Top speed: 128 km/h
+- Peak power: 13 kW
+
+S1 Pro 4 kWh:
+- Vehicle type: Electric scooter
+- Certified range: 242 km IDC
+- Top speed: 125 km/h
+- Peak power: 11 kW
+
+S1 X 4 kWh:
+- Vehicle type: Electric scooter
+- Certified range: up to 242 km IDC
+- Value-focused model
+
+Roadster X+ 9.1 kWh:
+- Vehicle type: Electric motorcycle
+- Certified range: up to 500 km IDC
+- Top speed: 125 km/h
+- Peak power: 11 kW
+
+Roadster X+ 4.5 kWh:
+- Vehicle type: Electric motorcycle
+- Certified range: 252 km IDC
+- Top speed: 125 km/h
+- Peak power: 11 kW
+
+Roadster X 4.5 kWh:
+- Vehicle type: Electric motorcycle
+- Certified range: 252 km IDC
+- Top speed: 118 km/h
+- Peak power: 7 kW
+
+==================================================
+CHATBOT ACCURACY RULES
+==================================================
+
+1. Ask whether the user wants a scooter or motorcycle.
+2. Ask for the exact model and battery capacity.
+3. Never treat IDC range as guaranteed real-world range.
+4. Never apply the 5.2 kWh specifications to a 4 kWh model.
+5. Never apply the S1 Pro specifications to S1 X.
+6. Never apply Roadster X+ specifications to Roadster X.
+7. Actual range changes with:
+   - Riding speed
+   - Rider and pillion weight
+   - Traffic
+   - Road gradient
+   - Tyre pressure
+   - Weather
+   - Ride mode
+   - Battery age
+8. Hypercharger compatibility can vary by model and variant.
+9. Prices, offers and available variants can change frequently.
+10. Direct users to Ola Electric for current price and availability.
+11. Never invent real-world range when verified data is unavailable.
+12. Do not describe 500 km IDC as guaranteed practical range.
+13. Warranty terms must be confirmed for the exact vehicle.

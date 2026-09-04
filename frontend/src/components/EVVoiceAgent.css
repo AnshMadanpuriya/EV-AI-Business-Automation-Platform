@@ -1,0 +1,16 @@
+#tataev-voice-agent {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100000 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+#tataev-voice-agent[data-initial-state='loading'] {
+  opacity: 0;
+}

@@ -1,0 +1,99 @@
+{
+  "name": "TataEV AI Chat Agent Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ev-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300],
+      "webhookId": "ev-agent-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst message = body.message || '';\nconst history = body.messageHistory || [];\nconst sessionId = body.sessionId || 'unknown';\nconst visitorName = body.visitorName || 'Visitor';\n\n// Detect intent\nconst lower = message.toLowerCase();\nlet intent = 'general';\nif (lower.includes('test ride') || lower.includes('test drive')) intent = 'test-ride';\nelse if (lower.includes('price') || lower.includes('cost') || lower.includes('lakh')) intent = 'pricing';\nelse if (lower.includes('charg') || lower.includes('battery')) intent = 'charging';\nelse if (lower.includes('service') || lower.includes('repair')) intent = 'service';\nelse if (lower.includes('book') || lower.includes('appointment')) intent = 'booking';\n\nreturn [{\n  json: {\n    message,\n    intent,\n    sessionId,\n    visitorName,\n    messageHistory: history,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Parse & Detect Intent",
+      "type": "n8n-nodes-base.code",
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are TataEV AI Agent — an expert AI assistant for Tata Motors Electric Vehicles. You help customers with:\n- Vehicle information (Nexon EV, Tiago EV, Punch EV, Tigor EV)\n- Test ride bookings\n- Pricing and subsidies (FAME-II)\n- Charging infrastructure and home charging setup\n- Service and maintenance\n- Lead qualification\n\nAlways be helpful, accurate, and concise. Keep responses under 100 words unless technical detail is needed. Always offer to book a test ride or connect with a sales agent when appropriate.\n\nCurrent intent detected: {{ $json.intent }}\nVisitor name: {{ $json.visitorName }}"
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 300
+        }
+      },
+      "name": "OpenAI Chat Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insertOne",
+        "collection": "chat_sessions",
+        "fields": {
+          "values": [
+            { "name": "sessionId", "value": "={{ $('Parse & Detect Intent').item.json.sessionId }}" },
+            { "name": "userMessage", "value": "={{ $('Parse & Detect Intent').item.json.message }}" },
+            { "name": "aiResponse", "value": "={{ $json.message.content }}" },
+            { "name": "intent", "value": "={{ $('Parse & Detect Intent').item.json.intent }}" },
+            { "name": "timestamp", "value": "={{ new Date().toISOString() }}" }
+          ]
+        }
+      },
+      "name": "Save to MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiMessage = $input.first().json.message?.content || $input.first().json.choices?.[0]?.message?.content || 'I apologize, I could not process your request.';\n\nreturn [{\n  json: {\n    success: true,\n    response: aiMessage,\n    intent: $('Parse & Detect Intent').item.json.intent,\n    sessionId: $('Parse & Detect Intent').item.json.sessionId,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "position": [900, 260]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1120, 260]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Parse & Detect Intent", "type": "main", "index": 0 }]] },
+    "Parse & Detect Intent": { "main": [[{ "node": "OpenAI Chat Agent", "type": "main", "index": 0 }]] },
+    "OpenAI Chat Agent": {
+      "main": [
+        [{ "node": "Build Response", "type": "main", "index": 0 }],
+        [{ "node": "Save to MongoDB", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Response": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "TataEV AI Agent workflow — receives chat messages via webhook, processes with OpenAI GPT-4o, saves to MongoDB, returns structured response."
+  }
+}

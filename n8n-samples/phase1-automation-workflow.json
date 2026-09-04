@@ -1,0 +1,55 @@
+{
+  "name": "TataEV Phase 1 Event Gateway",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tataev-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1a2c08a2-9d3a-4f84-b6ce-f637d8fbec2c",
+      "name": "TataEV Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "tataev-phase1-events"
+    },
+    {
+      "parameters": {
+        "jsCode": "const envelope = $json.body || $json;\nconst allowed = new Set(['lead.qualified','lead.followup.requested','lead.followup.scheduled','lead.handoff.requested','booking.created','booking.confirmed','booking.completed','booking.no-show','booking.rescheduled','booking.cancelled']);\nif (!envelope.event || !allowed.has(envelope.event)) {\n  throw new Error('Unsupported or missing TataEV event');\n}\nif (!envelope.eventId || !envelope.data) {\n  throw new Error('Invalid TataEV event envelope');\n}\nreturn [{ json: { ...envelope, accepted: true, route: envelope.event.split('.')[0] } }];"
+      },
+      "id": "cae25204-d442-43ee-a758-9fbf59e40dc9",
+      "name": "Validate Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, eventId: $json.eventId, event: $json.event, note: 'Connect provider and CRM nodes after Validate Event' } }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "5d40711a-3ea3-440d-a291-0738b7ad2ef8",
+      "name": "Acknowledge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [750, 300]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "TataEV Webhook": {
+      "main": [[{ "node": "Validate Event", "type": "main", "index": 0 }]]
+    },
+    "Validate Event": {
+      "main": [[{ "node": "Acknowledge", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "32c659a7-ec9e-46be-8f5a-8f0fced6ac58",
+  "meta": { "templateCredsSetupCompleted": false },
+  "tags": []
+}

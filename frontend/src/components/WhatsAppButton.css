@@ -1,0 +1,117 @@
+.whatsapp-smart-chat {
+  position: fixed;
+  right: 24px;
+  bottom: 92px;
+  z-index: 100001;
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2ee66b 0%, #25d366 52%, #16b957 100%);
+  color: #fff;
+  box-shadow:
+    0 16px 38px rgba(7, 94, 39, 0.4),
+    0 0 0 1px rgba(37, 211, 102, 0.16);
+  text-decoration: none;
+  isolation: isolate;
+  transform-origin: right center;
+  animation: whatsappSmartChatIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.whatsapp-smart-chat::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border: 1px solid rgba(37, 211, 102, 0.45);
+  border-radius: inherit;
+  opacity: 0;
+  animation: whatsappSmartChatPulse 2.8s ease-out 1.2s infinite;
+  pointer-events: none;
+}
+
+.whatsapp-smart-chat:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #35eb75 0%, #27d969 52%, #18c15d 100%);
+  box-shadow:
+    0 20px 46px rgba(7, 112, 45, 0.5),
+    0 0 0 5px rgba(37, 211, 102, 0.12);
+  transform: translateY(-3px) scale(1.025);
+}
+
+.whatsapp-smart-chat:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.95);
+  outline-offset: 3px;
+}
+
+.whatsapp-smart-chat__icon-wrap {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(5, 109, 43, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.whatsapp-smart-chat__icon {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 3px 6px rgba(0, 68, 25, 0.22));
+}
+
+@keyframes whatsappSmartChatIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes whatsappSmartChatPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  20% {
+    opacity: 0.75;
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 720px) {
+  .whatsapp-smart-chat {
+    right: 18px;
+    bottom: 88px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-smart-chat,
+  .whatsapp-smart-chat::before {
+    animation: none;
+  }
+
+  .whatsapp-smart-chat {
+    transition: none;
+  }
+}

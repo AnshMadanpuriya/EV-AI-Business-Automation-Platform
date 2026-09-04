@@ -1,0 +1,191 @@
+# ============================================================
+# TataEV AI Agent — Sample API Requests (REST format)
+# ============================================================
+# Base URL: http://localhost:5000/api
+
+# ────────────────────────────────
+# 1. AUTH
+# ────────────────────────────────
+
+### Register new account
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Rahul Kumar",
+  "email": "rahul@evdealership.com",
+  "password": "password123",
+  "company": "EV Nation Motors"
+}
+
+### Login
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "rahul@evdealership.com",
+  "password": "password123"
+}
+
+### Get current user (requires JWT)
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer {{JWT_TOKEN}}
+
+
+# ────────────────────────────────
+# 2. CHAT (no auth required)
+# ────────────────────────────────
+
+### Send a chat message
+POST http://localhost:5000/api/chat
+Content-Type: application/json
+
+{
+  "message": "What is the range of Nexon EV Max?",
+  "sessionId": "session_abc123",
+  "visitorName": "Arjun",
+  "visitorEmail": "arjun@gmail.com"
+}
+
+### Response format:
+# {
+#   "success": true,
+#   "sessionId": "session_abc123",
+#   "response": "The Nexon EV Max offers up to 437 km range...",
+#   "intent": "charging",
+#   "usedN8n": false
+# }
+
+### Get specific chat session
+GET http://localhost:5000/api/chat/session/session_abc123
+
+### Get all sessions (admin)
+GET http://localhost:5000/api/chat/sessions?page=1&limit=20&status=active
+Authorization: Bearer {{JWT_TOKEN}}
+
+
+# ────────────────────────────────
+# 3. LEADS
+# ────────────────────────────────
+
+### Get all leads (paginated, filterable)
+GET http://localhost:5000/api/leads?page=1&limit=20&status=new&source=chatbot
+Authorization: Bearer {{JWT_TOKEN}}
+
+### Create a lead manually
+POST http://localhost:5000/api/leads
+Content-Type: application/json
+
+{
+  "name": "Priya Mehta",
+  "email": "priya@gmail.com",
+  "phone": "+91 98765 43210",
+  "source": "chatbot",
+  "interest": "test-ride",
+  "vehicle": "Nexon EV Max",
+  "notes": "Interested in weekend test drive"
+}
+
+### Update lead status
+PUT http://localhost:5000/api/leads/{{LEAD_ID}}
+Content-Type: application/json
+Authorization: Bearer {{JWT_TOKEN}}
+
+{
+  "status": "qualified",
+  "notes": "Hot lead — high purchase intent"
+}
+
+### Delete a lead
+DELETE http://localhost:5000/api/leads/{{LEAD_ID}}
+Authorization: Bearer {{JWT_TOKEN}}
+
+### Search leads
+GET http://localhost:5000/api/leads?search=priya&status=new
+Authorization: Bearer {{JWT_TOKEN}}
+
+
+# ────────────────────────────────
+# 4. BOOKINGS
+# ────────────────────────────────
+
+### Create a booking (public — from landing page)
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+
+{
+  "name": "Vikram Singh",
+  "email": "vikram@company.com",
+  "phone": "+91 87654 32109",
+  "type": "test-ride",
+  "vehicle": "Tiago EV",
+  "date": "2025-08-15",
+  "timeSlot": "10:00 AM",
+  "location": "Mumbai Showroom",
+  "notes": "Prefer morning slot"
+}
+
+### Get all bookings (admin)
+GET http://localhost:5000/api/bookings?status=pending&type=test-ride
+Authorization: Bearer {{JWT_TOKEN}}
+
+### Update booking status
+PUT http://localhost:5000/api/bookings/{{BOOKING_ID}}
+Content-Type: application/json
+Authorization: Bearer {{JWT_TOKEN}}
+
+{
+  "status": "confirmed"
+}
+
+
+# ────────────────────────────────
+# 5. ANALYTICS
+# ────────────────────────────────
+
+### Get dashboard stats
+GET http://localhost:5000/api/analytics/dashboard
+Authorization: Bearer {{JWT_TOKEN}}
+
+### Response includes:
+# totalLeads, newLeads, convertedLeads, conversionRate
+# totalBookings, pendingBookings
+# totalChats, recentChats
+# leadsByStatus, leadsBySource, bookingsByType
+# dailyLeads (last 7 days)
+
+
+# ────────────────────────────────
+# 6. n8n WEBHOOK (sample payload)
+# ────────────────────────────────
+
+### Webhook URL (configure in .env): http://localhost:5678/webhook/ev-agent
+
+### Payload sent FROM backend TO n8n:
+POST http://localhost:5678/webhook/ev-agent
+Content-Type: application/json
+
+{
+  "sessionId": "session_abc123",
+  "message": "I want to book a test ride for Nexon EV Max",
+  "visitorName": "Arjun",
+  "visitorEmail": "arjun@gmail.com",
+  "timestamp": "2025-07-20T10:30:00.000Z",
+  "messageHistory": [
+    { "role": "user", "content": "Hi there" },
+    { "role": "assistant", "content": "Hello! How can I help you today?" },
+    { "role": "user", "content": "I want to book a test ride for Nexon EV Max" }
+  ],
+  "metadata": {
+    "source": "chatbot",
+    "product": "Tata Motors EV Agent"
+  }
+}
+
+### Expected response FROM n8n:
+# {
+#   "success": true,
+#   "response": "Great choice! The Nexon EV Max is fantastic. I'd be happy to schedule a test ride. Could you share your preferred date, time, and city?",
+#   "intent": "test-ride",
+#   "sessionId": "session_abc123"
+# }

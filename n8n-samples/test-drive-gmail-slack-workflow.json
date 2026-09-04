@@ -1,0 +1,123 @@
+{
+  "name": "TataEV Test Drive • Gmail + Slack Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tataev-booking-notifications",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cf74236e-7ac1-4c57-b1dc-c08bfe856305",
+      "name": "Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 320],
+      "webhookId": "tataev-booking-notifications"
+    },
+    {
+      "parameters": {
+        "jsCode": "const envelope = $json.body || $json;\nif (envelope.event !== 'booking.created' || !envelope.eventId || !envelope.data) {\n  throw new Error('Expected a valid booking.created event');\n}\nconst d = envelope.data;\nif (!d.bookingCode || !d.email || !d.adminEmail) {\n  throw new Error('Booking code, customer email, and BOOKING_ADMIN_EMAIL are required');\n}\nconst esc = (value = '') => String(value).replace(/[&<>\\\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#039;' }[char]));\nconst date = new Date(d.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });\nconst mode = d.testDriveMode === 'home' ? 'Home test drive' : 'Showroom visit';\nconst address = d.testDriveMode === 'home' ? esc(d.address) : esc(d.location || 'Nearest showroom to be confirmed');\nconst row = (label, value) => `<tr><td style=\\\"padding:7px 10px;color:#64748b\\\">${label}</td><td style=\\\"padding:7px 10px;color:#111827;font-weight:600\\\">${value || '—'}</td></tr>`;\nconst table = [row('Booking ID', esc(d.bookingCode)), row('Customer', esc(d.name)), row('Phone', esc(d.phone)), row('Email', esc(d.email)), row('EV', esc(d.vehicle)), row('Requested date', date), row('Time', esc(d.timeSlot)), row('Drive type', mode), row('City / PIN', `${esc(d.city)} / ${esc(d.pincode)}`), row('Location', address), row('Notes', esc(d.notes))].join('');\nconst shell = (title, intro, body, footer) => `<div style=\\\"font-family:Arial,sans-serif;background:#f4f7fb;padding:24px\\\"><div style=\\\"max-width:640px;margin:auto;background:white;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb\\\"><div style=\\\"background:#07111f;color:white;padding:22px 26px\\\"><div style=\\\"color:#38bdf8;font-size:12px;font-weight:700;letter-spacing:.08em\\\">TATAEV TEST DRIVE</div><h2 style=\\\"margin:7px 0 0\\\">${title}</h2></div><div style=\\\"padding:24px 26px;color:#334155;line-height:1.6\\\"><p>${intro}</p>${body}<p style=\\\"font-size:12px;color:#64748b;margin-top:22px\\\">${footer}</p></div></div></div>`;\nconst adminHtml = shell('New test-drive request', `A new request has been submitted by <strong>${esc(d.name)}</strong>.`, `<table style=\\\"width:100%;border-collapse:collapse;background:#f8fafc;border-radius:10px\\\">${table}</table>`, 'Contact the customer and verify vehicle, executive, and slot availability before marking this booking confirmed.');\nconst customerHtml = shell('We received your request', `Hi ${esc(d.name)}, we have received your test-drive request for <strong>${esc(d.vehicle)}</strong>.`, `<div style=\\\"background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:18px 0\\\"><strong>Booking ID:</strong> ${esc(d.bookingCode)}<br><strong>Preferred date:</strong> ${date}<br><strong>Preferred time:</strong> ${esc(d.timeSlot)}<br><strong>Preference:</strong> ${mode}</div><p>This is an acknowledgement, not the final slot confirmation. Our dealership team will contact you after checking availability.</p>`, 'Please do not share OTPs, passwords, or payment information in reply to an unverified request.');\nconst slackText = `🚗 *New test-drive request*\\n*${d.bookingCode}* • ${d.vehicle || 'EV not selected'}\\nCustomer: ${d.name}\\nPhone: ${d.phone}\\nEmail: ${d.email}\\nRequested: ${date}, ${d.timeSlot}\\nMode: ${mode}\\nArea: ${d.city} - ${d.pincode}\\nStatus: Pending dealership confirmation`;\nreturn [{ json: { ...envelope, data: d, adminHtml, customerHtml, slackText } }];"
+      },
+      "id": "057915e8-2038-4fa0-9b53-8c80f8ff02c5",
+      "name": "Prepare Notifications",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 320]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Prepare Notifications').item.json.data.adminEmail }}",
+        "subject": "={{ 'New Test Drive Request • ' + $('Prepare Notifications').item.json.data.bookingCode + ' • ' + $('Prepare Notifications').item.json.data.vehicle }}",
+        "emailType": "html",
+        "message": "={{ $('Prepare Notifications').item.json.adminHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "2e6d39e4-688b-468f-8a52-5618fa50e9d4",
+      "name": "Email Dealership Owner",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [690, 220]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Prepare Notifications').item.json.data.email }}",
+        "subject": "={{ 'We received your TataEV test-drive request • ' + $('Prepare Notifications').item.json.data.bookingCode }}",
+        "emailType": "html",
+        "message": "={{ $('Prepare Notifications').item.json.customerHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ba08e1b4-47b5-490b-9007-b01656da5b99",
+      "name": "Email Customer",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [920, 220]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SLACK_CHANNEL_ID",
+          "mode": "id"
+        },
+        "text": "={{ $('Prepare Notifications').item.json.slackText }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "914d262e-040f-4af1-b7a5-015581e2f88e",
+      "name": "Slack Team Alert • Enable After Setup",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [1150, 220],
+      "disabled": true,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, event: $('Prepare Notifications').item.json.event, eventId: $('Prepare Notifications').item.json.eventId, notifications: { adminEmail: 'sent', customerEmail: 'sent', slack: 'enable node after connecting Slack' } } }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "74fa0d73-49cf-44f2-bd4d-c843aa985d23",
+      "name": "Acknowledge Booking",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1380, 320]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Booking Webhook": {
+      "main": [[{ "node": "Prepare Notifications", "type": "main", "index": 0 }]]
+    },
+    "Prepare Notifications": {
+      "main": [[{ "node": "Email Dealership Owner", "type": "main", "index": 0 }]]
+    },
+    "Email Dealership Owner": {
+      "main": [[{ "node": "Email Customer", "type": "main", "index": 0 }]]
+    },
+    "Email Customer": {
+      "main": [[{ "node": "Slack Team Alert • Enable After Setup", "type": "main", "index": 0 }]]
+    },
+    "Slack Team Alert • Enable After Setup": {
+      "main": [[{ "node": "Acknowledge Booking", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "80aa2a16-a29d-4b23-952a-ce1e951fdf40",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

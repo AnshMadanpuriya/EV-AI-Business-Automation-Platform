@@ -1,0 +1,395 @@
+JSW MG MOTOR ELECTRIC VEHICLES — INDIA
+Last verified: 10 August 2026
+Primary sources: Official JSW MG Motor India and MG Select pages
+
+==================================================
+MODEL: MG COMET EV
+==================================================
+
+Category:
+- Compact urban electric car
+- Four-seat city EV
+- Rear-wheel drive
+
+Battery:
+- Capacity: 17.3 kWh
+- Type: Lithium-ion battery with prismatic cells
+- Protection rating: IP67
+
+Certified range:
+- ARAI-certified range: 230 km per full charge
+
+Expected real-world range:
+- Approximately 170–200 km
+- Depends on traffic, AC usage, speed, weather and driving style
+- This is not a guaranteed range
+
+Charging:
+- 7.4 kW AC charger: approximately 3.5 hours
+- 3.3 kW AC charger: approximately 7 hours
+- DC fast charging: Not supported
+- AC charging availability depends on the selected variant
+
+Battery warranty:
+- 8 years or 120,000 km
+- Whichever occurs first
+- Subject to MG warranty conditions
+
+Seating:
+- Four seats
+- Second-row seat has 50:50 split arrangement
+
+Important features:
+- Dual 10.25-inch displays
+- 10.25-inch infotainment screen
+- 10.25-inch digital instrument cluster
+- Wireless Android Auto
+- Wireless Apple CarPlay
+- i-SMART connected-car features
+- More than 100 voice commands on supported variants
+- Three drive modes
+- Three KERS regenerative-braking modes
+- Rotary gear selector
+- Smart key on supported variants
+
+Safety:
+- Dual front airbags
+- ABS with EBD
+- Electronic Stability Control on supported variants
+- Hill-hold control on supported variants
+- Rear parking camera and sensors
+- Tyre Pressure Monitoring System
+- ISOFIX child-seat mounts
+- High-strength body structure
+
+Best suited for:
+- Daily city commuting
+- Short urban trips
+- Buyers requiring a small and easily parked EV
+
+Not ideal for:
+- Regular long-distance highway journeys
+- Users requiring DC fast charging
+- Users requiring five seats
+
+==================================================
+MODEL: MG WINDSOR EV
+==================================================
+
+Category:
+- Electric CUV
+- Five-seat family electric vehicle
+
+Standard battery version:
+- Battery capacity: 38 kWh
+- Battery type: Lithium-ion
+- Battery protection rating: IP67
+- Certified range: approximately 332 km ARAI
+- Maximum power: 100 kW / 136 PS
+- Maximum torque: 200 Nm
+
+Windsor PRO versions:
+- Battery capacity: 52.9 kWh
+- Certified range: 449 km MIDC P1+P2
+- Maximum power: 100 kW / 136 PS
+- Maximum torque: 200 Nm
+
+Range warning:
+- Certified range is measured under controlled test conditions
+- Real-world range depends on speed, traffic, climate, AC usage,
+  driving mode, vehicle load and battery condition
+- Never promise 332 km or 449 km as guaranteed real-world range
+
+Charging:
+- Standard and PRO versions support AC and DC charging
+- 7.4 kW AC home charger for 38 kWh version:
+  approximately 6.5 hours from 0–100 percent
+- 3.3 kW portable charger for 38 kWh version:
+  approximately 13.8 hours
+- Windsor PRO 7.4 kW AC charging:
+  approximately 9.5 hours from 10–100 percent
+- Windsor PRO 60 kW DC charging:
+  approximately 50 minutes from 20–80 percent
+- Actual charging time depends on battery temperature,
+  charger output and charging conditions
+
+Drive modes:
+- Eco+
+- Eco
+- Normal
+- Sport
+
+Dimensions and space:
+- Wheelbase: 2,700 mm
+- Boot space: approximately 604 litres
+- Aero Lounge rear seats can recline up to 135 degrees
+
+Important features:
+- 15.6-inch GRANDVIEW touchscreen
+- Infinity View glass roof on supported variants
+- Ventilated front seats on supported variants
+- 256-colour ambient lighting on supported variants
+- 360-degree surround-view camera on supported variants
+- i-SMART connected-car technology
+- More than 80 connected features
+- More than 100 AI-based voice commands
+- Wireless Android Auto and Apple CarPlay
+- Powered tailgate on supported PRO variants
+- Vehicle-to-Load on supported PRO variants
+- Vehicle-to-Vehicle charging support on supported PRO variants
+- Infinity audio system with nine speakers on Exclusive PRO
+- 18-inch alloy wheels on supported variants
+
+ADAS and safety:
+- Level 2 ADAS on supported PRO variants
+- ADAS features can include:
+  - Adaptive Cruise Control
+  - Traffic Jam Assist
+  - Lane Departure Warning
+  - Lane Departure Prevention
+  - Lane Keep Assist
+  - Forward Collision Warning
+  - Automatic Emergency Braking
+  - Intelligent Headlamp Control
+- Six airbags on supported variants
+- Electronic Stability Program
+- Electronic parking brake
+- Auto hold
+- 360-degree camera on supported variants
+
+BaaS explanation:
+- BaaS means Battery-as-a-Service
+- Under BaaS, the vehicle may have a lower initial purchase price
+- The customer separately pays battery usage charges per kilometre
+- BaaS is not free battery ownership
+- Current prices and per-kilometre charges must be verified from MG
+
+Best suited for:
+- Families
+- City and intercity travel
+- Buyers wanting spacious rear seats and a large display
+
+==================================================
+MODEL: MG ZS EV
+==================================================
+
+Category:
+- Five-seat electric SUV
+
+Battery:
+- Capacity: 50.3 kWh
+- Battery type: Prismatic-cell lithium-ion
+- Battery safety standards include IP69K, ASIL-D and UL2580
+
+Certified range:
+- 461 km per full charge
+
+Expected real-world range:
+- Approximately 350–420 km depending on conditions
+- This is an indicative range, not a guarantee
+
+Motor and performance:
+- Maximum power: 176 PS
+- Acceleration from 0–100 km/h: approximately 8.5 seconds
+
+Charging:
+- 7.4 kW AC charger, 0–100 percent:
+  approximately 9–10 hours
+- 50 kW DC charger, 0–80 percent:
+  approximately 50 minutes
+- Supports DC fast charging
+- Actual time varies according to charger, battery temperature
+  and charging conditions
+
+Wheels:
+- 17-inch alloy wheels
+- Tyre size: 215/55 R17
+
+Seating:
+- Five seats
+
+Battery warranty:
+- 8 years or 150,000 km for the first registered owner
+- Whichever occurs first
+- Subject to MG warranty terms
+
+Important features:
+- Dual-pane panoramic sunroof
+- 10.1-inch HD touchscreen on supported variants
+- Digital instrument cluster
+- Digital Key on supported variants
+- MG i-SMART connected-car features
+- More than 75 connected features
+- 360-degree camera
+- Rear Drive Assist
+- Hill Descent Control
+- Electronic Stability Control
+- Tyre Pressure Monitoring System
+- Six airbags on supported variants
+
+ADAS:
+- Level 2 ADAS on supported variants
+- Lane Change Assist
+- Rear Cross Traffic Alert
+- Blind-spot assistance and other functions vary by variant
+
+Best suited for:
+- Buyers wanting a traditional SUV body
+- Highway and city usage
+- Users needing longer range than Comet EV
+
+==================================================
+MODEL: MG CYBERSTER
+==================================================
+
+Category:
+- Two-seat electric roadster
+- Performance-oriented convertible electric sports car
+
+Battery:
+- Capacity: 77 kWh
+
+Drivetrain and performance:
+- Dual-motor electric drivetrain
+- Maximum power: 375 kW / 510 PS
+- Maximum torque: 725 Nm
+- Acceleration from 0–100 km/h: approximately 3.2 seconds
+
+Certified range:
+- 580 km MIDC P1+P2
+- Certified by iCAT under standard test procedure
+- Actual range may be substantially lower during high-performance driving
+
+Dimensions:
+- Length: 4,535 mm
+- Width: 1,913 mm
+- Height: 1,329 mm
+- Wheelbase: 2,691 mm
+
+Important features:
+- Electrically operated scissor doors
+- Electric convertible roof
+- Multiple driving modes
+- Digital cockpit
+- Performance-oriented chassis
+- Brembo braking system
+- Level 2 ADAS
+- Four airbags
+- Driver-monitoring features
+- Intelligent cruise control
+- Lane-assistance features
+- Collision-avoidance features
+- Rear-driving assistance
+
+Best suited for:
+- Performance and luxury buyers
+- Buyers looking for an electric roadster
+
+Not ideal for:
+- Family use
+- Buyers requiring rear seats or large luggage capacity
+
+==================================================
+MODEL: MG M9
+==================================================
+
+Category:
+- Premium electric luxury MPV
+- Three-row electric people mover
+
+Battery:
+- Capacity: 90 kWh
+
+Certified range:
+- 548 km
+- Actual range depends on traffic, speed, weather,
+  AC usage, passenger load and driving style
+
+Performance:
+- Maximum torque: 350 Nm
+
+Dimensions:
+- Length: 5,200 mm
+- Width: 2,000 mm
+- Height: 1,800 mm
+- Wheelbase: 3,200 mm
+- Reported ground clearance: 150 mm
+
+Important features:
+- Premium three-row cabin
+- 31.24 cm infotainment display
+- 17.78 cm digital driver display
+- Digital-display inside rear-view mirror
+- Intelligent armrest control screen
+- i-SMART connected-car suite
+- Powered and reclining executive second-row seats
+- Level 2 ADAS
+- Seven airbags
+- Self-sealing tyres
+- Heated ORVMs
+- High-strength steel construction
+
+Safety rating:
+- Reported 5-star Euro NCAP and ANCAP safety performance
+- Rating conditions and market specifications should be checked
+  before directly comparing with an India NCAP result
+
+Best suited for:
+- Luxury family transport
+- Executive travel
+- Buyers requiring three-row passenger space
+
+==================================================
+MG EV COMPARISON SUMMARY
+==================================================
+
+MG Comet EV:
+- Battery: 17.3 kWh
+- Certified range: 230 km
+- Seats: 4
+- Primary purpose: Urban commuting
+- DC charging: No
+
+MG Windsor EV:
+- Batteries: 38 kWh and 52.9 kWh
+- Certified range: 332 km and 449 km
+- Seats: 5
+- Primary purpose: Family CUV
+- DC charging: Yes
+
+MG ZS EV:
+- Battery: 50.3 kWh
+- Certified range: 461 km
+- Seats: 5
+- Primary purpose: Electric SUV
+- DC charging: Yes
+
+MG Cyberster:
+- Battery: 77 kWh
+- Certified range: 580 km
+- Seats: 2
+- Primary purpose: Performance roadster
+
+MG M9:
+- Battery: 90 kWh
+- Certified range: 548 km
+- Primary purpose: Luxury electric MPV
+
+==================================================
+CHATBOT ACCURACY RULES
+==================================================
+
+1. Always distinguish certified range from real-world range.
+2. Never guarantee the certified range.
+3. Mention battery size along with the range.
+4. Clarify whether the customer wants city, family, SUV,
+   performance or luxury usage.
+5. Do not recommend Comet EV when DC fast charging is mandatory.
+6. Do not describe Cyberster as a family car.
+7. Do not confuse Windsor 38 kWh with Windsor PRO 52.9 kWh.
+8. ADAS and premium features may be variant-specific.
+9. Charging time depends on charger power and battery conditions.
+10. Prices and BaaS charges change frequently.
+11. For current prices, variants and offers, direct the user to
+    the official MG website or an authorised MG dealership.
+12. Do not invent specifications that are absent from this document.
