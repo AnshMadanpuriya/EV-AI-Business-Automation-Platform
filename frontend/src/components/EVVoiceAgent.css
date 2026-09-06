@@ -1,6 +1,8 @@
 #tataev-voice-agent {
   position: fixed !important;
   inset: 0 !important;
+  --tataev-voice-right: 24px;
+  --tataev-voice-bottom: 20px;
   z-index: 100000 !important;
   width: auto !important;
   height: auto !important;
@@ -13,4 +15,11 @@
 
 #tataev-voice-agent[data-initial-state='loading'] {
   opacity: 0;
+}
+
+@media (max-width: 720px) {
+  #tataev-voice-agent {
+    --tataev-voice-right: 18px;
+    --tataev-voice-bottom: 16px;
+  }
 }
