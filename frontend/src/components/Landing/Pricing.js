@@ -4,23 +4,26 @@ import { Link } from 'react-router-dom';
 
 const plans = [
   {
+    code: 'starter',
     name: 'Starter',
     price: { monthly: 4999, annual: 3999 },
     desc: 'Perfect for single-location EV dealers',
     features: ['500 AI conversations/mo', 'Chat agent only', 'Lead capture & CRM', 'Email notifications', 'Basic analytics', '5 team members', 'Email support'],
-    cta: 'Start Free Trial',
+    cta: 'Subscribe securely',
     highlight: false,
   },
   {
+    code: 'growth',
     name: 'Growth',
     price: { monthly: 14999, annual: 11999 },
     desc: 'For growing EV dealerships & OEMs',
     features: ['5,000 AI conversations/mo', 'Voice + Chat agent', 'Advanced lead scoring', 'n8n workflow builder', 'Full analytics dashboard', 'Unlimited team members', 'CRM integrations', 'Priority support', 'Custom AI training'],
-    cta: 'Get Started',
+    cta: 'Subscribe securely',
     highlight: true,
     badge: 'Most Popular',
   },
   {
+    code: null,
     name: 'Enterprise',
     price: { monthly: null, annual: null },
     desc: 'For large EV companies & fleets',
@@ -52,7 +55,7 @@ export default function Pricing() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map(({ name, price, desc, features, cta, highlight, badge }) => (
+          {plans.map(({ code, name, price, desc, features, cta, highlight, badge }) => (
             <div key={name} className={`card p-7 relative flex flex-col ${highlight ? 'border-ev-blue shadow-blue-glow scale-[1.02]' : 'border-ev-border'} hover:-translate-y-1 transition-transform duration-200`}>
               {badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-ev-blue text-white text-xs font-display font-bold px-4 py-1 rounded-full flex items-center gap-1">
@@ -80,9 +83,14 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link to="/login" className={`text-center py-3 rounded-lg font-display font-semibold text-sm transition-all ${highlight ? 'btn-primary' : 'btn-secondary'}`}>
+              <Link to={code ? `/subscribe/${code}_${annual ? 'annual' : 'monthly'}` : '/login'} className={`text-center py-3 rounded-lg font-display font-semibold text-sm transition-all ${highlight ? 'btn-primary' : 'btn-secondary'}`}>
                 {cta}
               </Link>
+              {code && (
+                <div className="text-center text-[10px] text-gray-600 mt-2">
+                  UPI AutoPay · Cards · Bank mandate
+                </div>
+              )}
             </div>
           ))}
         </div>

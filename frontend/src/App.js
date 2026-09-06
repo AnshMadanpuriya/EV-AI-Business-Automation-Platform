@@ -1,21 +1,26 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import SubscriptionCheckoutPage from './pages/SubscriptionCheckoutPage';
 // import ChatbotWidget from './components/Chatbot/ChatbotWidget';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080C14' }}>
       <div style={{ width: 32, height: 32, border: '2px solid #0066FF', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
-  return user ? children : <Navigate to="/login" replace />;
+  const returnTo = `${location.pathname}${location.search}`;
+  return user
+    ? children
+    : <Navigate to={`/login?next=${encodeURIComponent(returnTo)}`} replace />;
 };
 
 const AppRoutes = () => (
@@ -24,6 +29,7 @@ const AppRoutes = () => (
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/subscribe/:planCode" element={<ProtectedRoute><SubscriptionCheckoutPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
     {/* <ChatbotWidget /> */}
