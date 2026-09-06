@@ -791,9 +791,9 @@ function Testimonials() {
 // ============================================================
 function Pricing() {
   const plans = [
-    { name: 'Starter', price: '₹4,999', period: '/mo', desc: 'Single-location EV dealers', features: ['500 AI conversations', 'Chat agent', 'Lead capture', 'Basic analytics', 'Email support'], cta: 'Get Started', featured: false },
-    { name: 'Growth', price: '₹14,999', period: '/mo', desc: 'Growing EV dealerships & OEMs', features: ['5,000 conversations', 'Voice + Chat', 'n8n workflows', 'CRM integrations', 'Priority support', 'Custom AI training'], cta: 'Get Started', featured: true, badge: '⚡ Most Popular' },
-    { name: 'Enterprise', price: 'Custom', period: '', desc: 'Large EV companies & fleets', features: ['Unlimited conversations', 'Custom voice persona', 'White-label solution', 'Dedicated AI model', 'Account manager'], cta: 'Contact Sales', featured: false },
+    { code: 'starter_monthly', name: 'Starter', price: '₹4,999', period: '/mo', desc: 'Single-location EV dealers', features: ['500 AI conversations', 'Chat agent', 'Lead capture', 'Basic analytics', 'Email support'], cta: 'Subscribe securely', featured: false },
+    { code: 'growth_monthly', name: 'Growth', price: '₹14,999', period: '/mo', desc: 'Growing EV dealerships & OEMs', features: ['5,000 conversations', 'Voice + Chat', 'n8n workflows', 'CRM integrations', 'Priority support', 'Custom AI training'], cta: 'Subscribe securely', featured: true, badge: '⚡ Most Popular' },
+    { code: null, name: 'Enterprise', price: 'Custom', period: '', desc: 'Large EV companies & fleets', features: ['Unlimited conversations', 'Custom voice persona', 'White-label solution', 'Dedicated AI model', 'Account manager'], cta: 'Contact Sales', featured: false },
   ];
 
   const ref = useRef(null);
@@ -815,7 +815,7 @@ function Pricing() {
           animate={inView ? 'visible' : 'hidden'}
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20 }}
         >
-          {plans.map(({ name, price, period, desc, features, cta, featured, badge }) => (
+          {plans.map(({ code, name, price, period, desc, features, cta, featured, badge }) => (
             <motion.div
               key={name}
               variants={featured ? scaleIn : staggerItem}
@@ -837,13 +837,18 @@ function Pricing() {
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#D1D5DB' }}><span style={{ color: '#00FF88', fontWeight: 700 }}>✓</span>{f}</li>)}
               </ul>
-              <Link to="/login" style={{
+              <Link to={code ? `/subscribe/${code}` : '/login'} style={{
                 display: 'block', textAlign: 'center', padding: '11px', borderRadius: 9,
                 fontWeight: 700, fontSize: 13, textDecoration: 'none',
                 background: featured ? '#0066FF' : 'transparent',
                 color: featured ? 'white' : '#00D4FF',
                 border: featured ? 'none' : '1px solid #1A2540',
               }}>{cta}</Link>
+              {code && (
+                <div style={{ textAlign: 'center', color: '#6B7280', fontSize: 10, marginTop: 9 }}>
+                  UPI AutoPay · Cards · Bank mandate
+                </div>
+              )}
             </motion.div>
           ))}
         </motion.div>

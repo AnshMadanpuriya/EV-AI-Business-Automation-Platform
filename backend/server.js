@@ -17,8 +17,21 @@ const User = require('./models/User');
 const Lead = require('./models/Lead');
 const Booking = require('./models/Booking');
 const ChatSession = require('./models/ChatSession');
+const Subscription = require('./models/Subscription');
+const PaymentWebhookEvent = require('./models/PaymentWebhookEvent');
 const { qualifyLead } = require('./services/leadScoring');
 const { dispatchAutomation } = require('./services/automation');
+const {
+  getPaymentMode,
+  getPlanDefinition,
+  getPublicPlans,
+  getRazorpayConfiguration,
+  createRazorpaySubscription,
+  cancelRazorpaySubscription,
+  verifyCheckoutSignature,
+  verifyWebhookSignature,
+  hashWebhookPayload,
+} = require('./services/razorpayPayments');
 const { cleanText, validateLead, validateBooking, safePagination } = require('./utils/validation');
 
 // Load environment files from deterministic locations. This lets the Node
@@ -48,10 +61,22 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json({ limit: '200kb' }));
+app.use(express.json({
+  limit: '200kb',
+  verify(req, res, buffer) {
+    // Razorpay signatures must be checked against the exact bytes received.
+    if (req.originalUrl.startsWith('/api/payments/webhook')) {
+      req.rawBody = Buffer.from(buffer);
+    }
+  },
+}));
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/chat', rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false }));
 app.use(['/api/bookings', '/api/leads'], rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false }));
+app.use(
+  ['/api/payments/subscriptions', '/api/payments/subscription/cancel'],
+  rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false }),
+);
 
 // ─── Config ───────────────────────────────────────────────
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tatamotors-ev';
@@ -78,7 +103,9 @@ async function connectDatabase() {
 }
 
 app.use('/api', (req, res, next) => {
-  const databaseOptional = ['/health', '/chat'].includes(req.path) || req.path.startsWith('/ev/');
+  const databaseOptional = ['/health', '/chat'].includes(req.path)
+    || req.path.startsWith('/ev/')
+    || (req.method === 'GET' && req.path === '/payments/plans');
   if (databaseOptional || mongoose.connection.readyState === 1) return next();
   return res.status(503).json({
     success: false,
@@ -1231,9 +1258,364 @@ app.get('/api/ev/brands', (req, res) => {
 });
 
 // ============================================================
+// RAZORPAY SUBSCRIPTIONS
+// ============================================================
+const NON_TERMINAL_SUBSCRIPTION_STATUSES = [
+  'created',
+  'authenticated',
+  'active',
+  'pending',
+  'halted',
+  'paused',
+];
+
+function asDateFromUnix(value) {
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds > 0
+    ? new Date(seconds * 1000)
+    : undefined;
+}
+
+function toSafeSubscription(subscription) {
+  if (!subscription) return null;
+  const record = typeof subscription.toObject === 'function'
+    ? subscription.toObject()
+    : subscription;
+
+  return {
+    id: String(record._id),
+    provider: record.provider,
+    mode: record.mode,
+    planCode: record.planCode,
+    planName: record.planName,
+    billingCycle: record.billingCycle,
+    amountPaise: record.amountPaise,
+    currency: record.currency,
+    subscriptionId: record.razorpaySubscriptionId,
+    status: record.status,
+    currentStart: record.currentStart || null,
+    currentEnd: record.currentEnd || null,
+    chargeAt: record.chargeAt || null,
+    endedAt: record.endedAt || null,
+    cancelAtCycleEnd: Boolean(record.cancelAtCycleEnd),
+    latestPaymentStatus: record.latestPaymentStatus || '',
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
+}
+
+function paymentErrorResponse(res, error, fallbackMessage) {
+  const status = Number(error.statusCode);
+  const safeStatus = Number.isInteger(status) && status >= 400 && status < 600 ? status : 500;
+  return res.status(safeStatus).json({
+    success: false,
+    message: error.publicMessage || fallbackMessage,
+  });
+}
+
+app.get('/api/payments/plans', (req, res) => {
+  const configuration = getRazorpayConfiguration();
+  res.json({
+    success: true,
+    provider: 'razorpay',
+    mode: configuration.mode,
+    checkoutConfigured: configuration.apiConfigured,
+    plans: getPublicPlans(),
+  });
+});
+
+app.get('/api/payments/subscription', authMiddleware, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({
+      user: req.user._id,
+      mode: getPaymentMode(),
+    }).sort({ createdAt: -1 });
+
+    return res.json({ success: true, subscription: toSafeSubscription(subscription) });
+  } catch (error) {
+    return paymentErrorResponse(res, error, 'Could not load subscription status.');
+  }
+});
+
+app.post('/api/payments/subscriptions', authMiddleware, async (req, res) => {
+  try {
+    const plan = getPlanDefinition(req.body?.planCode);
+    if (!plan) {
+      return res.status(400).json({ success: false, message: 'Select a valid subscription plan.' });
+    }
+
+    const configuration = getRazorpayConfiguration();
+    if (!configuration.apiConfigured || !plan.razorpayPlanId) {
+      const error = new Error('Razorpay API keys or selected plan ID are missing');
+      error.statusCode = 503;
+      error.publicMessage = 'Secure payments are not configured for this plan yet.';
+      throw error;
+    }
+
+    const existing = await Subscription.findOne({
+      user: req.user._id,
+      mode: configuration.mode,
+      status: { $in: NON_TERMINAL_SUBSCRIPTION_STATUSES },
+    }).sort({ createdAt: -1 });
+
+    if (existing) {
+      const reusable = existing.status === 'created'
+        && existing.planCode === plan.code
+        && Date.now() - new Date(existing.createdAt).getTime() < 30 * 60 * 1000;
+
+      if (!reusable) {
+        return res.status(409).json({
+          success: false,
+          message: 'An existing subscription must be completed or cancelled before starting another.',
+          subscription: toSafeSubscription(existing),
+        });
+      }
+
+      return res.json({
+        success: true,
+        reused: true,
+        mode: configuration.mode,
+        plan: getPublicPlans().find((item) => item.code === plan.code),
+        checkout: {
+          keyId: configuration.keyId,
+          subscriptionId: existing.razorpaySubscriptionId,
+          customer: {
+            name: req.user.name || '',
+            email: req.user.email || '',
+            phone: req.user.phone || '',
+          },
+        },
+      });
+    }
+
+    const providerSubscription = await createRazorpaySubscription(plan, req.user._id);
+    const subscription = await Subscription.create({
+      user: req.user._id,
+      mode: configuration.mode,
+      planCode: plan.code,
+      planName: plan.name,
+      billingCycle: plan.billingCycle,
+      amountPaise: plan.amountPaise,
+      currency: plan.currency,
+      razorpayPlanId: plan.razorpayPlanId,
+      razorpaySubscriptionId: providerSubscription.id,
+      razorpayCustomerId: providerSubscription.customer_id || '',
+      status: providerSubscription.status || 'created',
+      shortUrl: providerSubscription.short_url || '',
+      currentStart: asDateFromUnix(providerSubscription.current_start),
+      currentEnd: asDateFromUnix(providerSubscription.current_end),
+      chargeAt: asDateFromUnix(providerSubscription.charge_at),
+      endedAt: asDateFromUnix(providerSubscription.ended_at),
+    });
+
+    return res.status(201).json({
+      success: true,
+      mode: configuration.mode,
+      plan: getPublicPlans().find((item) => item.code === plan.code),
+      subscription: toSafeSubscription(subscription),
+      checkout: {
+        keyId: configuration.keyId,
+        subscriptionId: providerSubscription.id,
+        customer: {
+          name: req.user.name || '',
+          email: req.user.email || '',
+          phone: req.user.phone || '',
+        },
+      },
+    });
+  } catch (error) {
+    console.error(`Razorpay create ${req.requestId}:`, error.message);
+    return paymentErrorResponse(res, error, 'Subscription checkout could not be started.');
+  }
+});
+
+app.post('/api/payments/subscriptions/verify', authMiddleware, async (req, res) => {
+  try {
+    const paymentId = cleanText(req.body?.razorpay_payment_id, 100);
+    const subscriptionId = cleanText(req.body?.razorpay_subscription_id, 100);
+    const signature = cleanText(req.body?.razorpay_signature, 128);
+
+    if (!/^pay_[A-Za-z0-9]+$/.test(paymentId)
+      || !/^sub_[A-Za-z0-9]+$/.test(subscriptionId)
+      || !/^[a-f0-9]{64}$/i.test(signature)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment verification response.' });
+    }
+
+    const subscription = await Subscription.findOne({
+      user: req.user._id,
+      mode: getPaymentMode(),
+      razorpaySubscriptionId: subscriptionId,
+    });
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: 'Subscription record was not found.' });
+    }
+
+    if (!verifyCheckoutSignature({ paymentId, subscriptionId, signature })) {
+      return res.status(403).json({ success: false, message: 'Payment signature verification failed.' });
+    }
+
+    subscription.latestPaymentId = paymentId;
+    subscription.latestPaymentStatus = 'authorised';
+    if (['created', 'pending'].includes(subscription.status)) {
+      subscription.status = 'authenticated';
+    }
+    await subscription.save();
+
+    return res.json({
+      success: true,
+      message: 'Payment signature verified. Final access status is confirmed by webhook.',
+      subscription: toSafeSubscription(subscription),
+    });
+  } catch (error) {
+    return paymentErrorResponse(res, error, 'Payment could not be verified.');
+  }
+});
+
+app.post('/api/payments/subscription/cancel', authMiddleware, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({
+      user: req.user._id,
+      mode: getPaymentMode(),
+      status: { $in: NON_TERMINAL_SUBSCRIPTION_STATUSES },
+    }).sort({ createdAt: -1 });
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: 'No cancellable subscription was found.' });
+    }
+    if (subscription.cancelAtCycleEnd) {
+      return res.json({ success: true, subscription: toSafeSubscription(subscription) });
+    }
+
+    const providerSubscription = await cancelRazorpaySubscription(subscription.razorpaySubscriptionId);
+    subscription.cancelAtCycleEnd = true;
+    subscription.currentEnd = asDateFromUnix(providerSubscription.current_end) || subscription.currentEnd;
+    subscription.endedAt = asDateFromUnix(providerSubscription.ended_at) || subscription.endedAt;
+    if (providerSubscription.status === 'cancelled') subscription.status = 'cancelled';
+    await subscription.save();
+
+    return res.json({ success: true, subscription: toSafeSubscription(subscription) });
+  } catch (error) {
+    console.error(`Razorpay cancel ${req.requestId}:`, error.message);
+    return paymentErrorResponse(res, error, 'Subscription could not be cancelled.');
+  }
+});
+
+const RAZORPAY_EVENT_STATUS = Object.freeze({
+  'subscription.authenticated': 'authenticated',
+  'subscription.activated': 'active',
+  'subscription.charged': 'active',
+  'subscription.pending': 'pending',
+  'subscription.halted': 'halted',
+  'subscription.paused': 'paused',
+  'subscription.resumed': 'active',
+  'subscription.cancelled': 'cancelled',
+  'subscription.completed': 'completed',
+  'subscription.expired': 'expired',
+});
+
+app.post('/api/payments/webhook', async (req, res) => {
+  const rawBody = req.rawBody;
+  const signature = req.header('x-razorpay-signature');
+
+  if (!verifyWebhookSignature({ rawBody, signature })) {
+    return res.status(401).json({ success: false, message: 'Invalid webhook signature.' });
+  }
+
+  const payloadHash = hashWebhookPayload(rawBody);
+  const eventId = cleanText(req.header('x-razorpay-event-id'), 160) || `hash_${payloadHash}`;
+  const eventType = cleanText(req.body?.event, 120) || 'unknown';
+  const providerCreatedAt = asDateFromUnix(req.body?.created_at) || new Date();
+  let auditEvent;
+
+  try {
+    auditEvent = await PaymentWebhookEvent.findOne({ eventId });
+    if (auditEvent && ['processed', 'ignored'].includes(auditEvent.status)) {
+      return res.status(200).json({ success: true, duplicate: true });
+    }
+    if (!auditEvent) {
+      try {
+        auditEvent = await PaymentWebhookEvent.create({
+          eventId,
+          eventType,
+          payloadHash,
+          providerCreatedAt,
+        });
+      } catch (error) {
+        if (error.code !== 11000) throw error;
+        auditEvent = await PaymentWebhookEvent.findOne({ eventId });
+        if (auditEvent && ['processed', 'ignored'].includes(auditEvent.status)) {
+          return res.status(200).json({ success: true, duplicate: true });
+        }
+      }
+    }
+
+    const subscriptionEntity = req.body?.payload?.subscription?.entity || {};
+    const paymentEntity = req.body?.payload?.payment?.entity || {};
+    const subscriptionId = cleanText(
+      subscriptionEntity.id || paymentEntity.subscription_id,
+      100,
+    );
+
+    if (!/^sub_[A-Za-z0-9]+$/.test(subscriptionId)) {
+      auditEvent.status = 'ignored';
+      auditEvent.processedAt = new Date();
+      await auditEvent.save();
+      return res.status(200).json({ success: true, ignored: true });
+    }
+
+    const subscription = await Subscription.findOne({ razorpaySubscriptionId: subscriptionId });
+    if (!subscription) {
+      auditEvent.status = 'failed';
+      auditEvent.error = 'Subscription record not found';
+      await auditEvent.save();
+      return res.status(503).json({ success: false, message: 'Subscription is not available yet.' });
+    }
+
+    const eventIsCurrent = !subscription.latestEventAt
+      || providerCreatedAt.getTime() >= new Date(subscription.latestEventAt).getTime();
+
+    if (eventIsCurrent) {
+      const nextStatus = RAZORPAY_EVENT_STATUS[eventType];
+      if (nextStatus) subscription.status = nextStatus;
+      subscription.latestEvent = eventType;
+      subscription.latestEventAt = providerCreatedAt;
+      subscription.razorpayCustomerId = subscriptionEntity.customer_id
+        || paymentEntity.customer_id
+        || subscription.razorpayCustomerId;
+      subscription.currentStart = asDateFromUnix(subscriptionEntity.current_start) || subscription.currentStart;
+      subscription.currentEnd = asDateFromUnix(subscriptionEntity.current_end) || subscription.currentEnd;
+      subscription.chargeAt = asDateFromUnix(subscriptionEntity.charge_at) || subscription.chargeAt;
+      subscription.endedAt = asDateFromUnix(subscriptionEntity.ended_at) || subscription.endedAt;
+      subscription.cancelAtCycleEnd = Boolean(
+        subscriptionEntity.cancel_at_cycle_end ?? subscription.cancelAtCycleEnd,
+      );
+      if (paymentEntity.id) subscription.latestPaymentId = paymentEntity.id;
+      if (paymentEntity.status) subscription.latestPaymentStatus = paymentEntity.status;
+      if (eventType === 'payment.failed') subscription.latestPaymentStatus = 'failed';
+      await subscription.save();
+    }
+
+    auditEvent.status = eventIsCurrent ? 'processed' : 'ignored';
+    auditEvent.processedAt = new Date();
+    auditEvent.error = '';
+    await auditEvent.save();
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    if (auditEvent) {
+      auditEvent.status = 'failed';
+      auditEvent.error = cleanText(error.message, 300);
+      await auditEvent.save().catch(() => {});
+    }
+    console.error(`Razorpay webhook ${req.requestId}:`, error.message);
+    return res.status(500).json({ success: false, message: 'Webhook processing failed.' });
+  }
+});
+
+// ============================================================
 // HEALTH CHECK
 // ============================================================
 app.get('/api/health', (req, res) => {
+  const razorpayConfiguration = getRazorpayConfiguration();
   res.json({
     success: true,
     message: '✅ TataEV API running',
@@ -1245,6 +1627,13 @@ app.get('/api/health', (req, res) => {
     automation: {
       configured: Boolean(process.env.N8N_AUTOMATION_WEBHOOK_URL || process.env.N8N_BOOKING_WEBHOOK_URL || process.env.N8N_LEAD_WEBHOOK_URL),
       signatureConfigured: Boolean(process.env.N8N_WEBHOOK_SECRET),
+    },
+    payments: {
+      provider: 'razorpay',
+      mode: razorpayConfiguration.mode,
+      apiConfigured: razorpayConfiguration.apiConfigured,
+      webhookConfigured: razorpayConfiguration.webhookConfigured,
+      configuredPlans: getPublicPlans().filter((plan) => plan.configured).length,
     },
     requestId: req.requestId,
     timestamp: new Date(),
@@ -1281,6 +1670,9 @@ function startServer(port = PORT) {
     console.log(`   GET  /api/ev/compare          → Compare 2 EVs`);
     console.log(`   GET  /api/analytics/dashboard → Dashboard stats`);
     console.log(`   GET  /api/analytics/owner     → Owner operations metrics`);
+    console.log(`   GET  /api/payments/plans      → Razorpay subscription catalog`);
+    console.log(`   POST /api/payments/subscriptions → Start secure subscription`);
+    console.log(`   POST /api/payments/webhook    → Verified Razorpay events`);
     console.log(`   GET  /api/health              → Health check\n`);
   });
   connectDatabase();

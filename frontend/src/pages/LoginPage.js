@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -10,6 +10,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedNext = searchParams.get('next');
+  const nextPath = requestedNext?.startsWith('/') && !requestedNext.startsWith('//')
+    ? requestedNext
+    : '/dashboard';
 
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -23,7 +28,7 @@ export default function LoginPage() {
       } else {
         await register(form.name, form.email, form.password, form.company);
       }
-      navigate('/dashboard');
+      navigate(nextPath, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Check if backend is running.');
     } finally {
