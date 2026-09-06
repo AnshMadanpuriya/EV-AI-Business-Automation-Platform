@@ -142,6 +142,12 @@ export default function EVChatbot() {
     setInput("");
   };
 
+  const startNewChat = () => {
+    clearChat();
+    checkServices();
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
   const sendMessage = async () => {
     const question = input.trim();
 
@@ -219,7 +225,7 @@ export default function EVChatbot() {
           id: Date.now() + 1,
           role: "assistant",
           error: true,
-          text: "AI service abhi offline hai. Backend ya RAG service start karke **Retry connection** dabaiye.",
+          text: "AI service abhi offline hai. Backend ya RAG service start karke header mein **refresh button** dabaiye.",
         },
       ]);
       setService("offline");
@@ -234,6 +240,8 @@ export default function EVChatbot() {
       sendMessage();
     }
   };
+
+  const showQuickActions = messages.length === 1 && !loading;
 
   return (
     <div className="ev-chatbot-root">
@@ -268,8 +276,9 @@ export default function EVChatbot() {
               <button
                 type="button"
                 className="ev-header-button"
-                onClick={clearChat}
-                title="Clear chat"
+                onClick={startNewChat}
+                title="New chat and retry connection"
+                aria-label="New chat and retry connection"
               >
                 ↻
               </button>
@@ -289,6 +298,7 @@ export default function EVChatbot() {
             ref={messagesContainerRef}
             className="ev-chat-messages"
             onWheel={(event) => event.stopPropagation()}
+            aria-live="polite"
           >
             {messages.map((message) => (
               <div
@@ -328,25 +338,31 @@ export default function EVChatbot() {
             )}
           </div>
 
-          <div className="ev-suggestions">
-            <button
-              type="button"
-              onClick={() => setInput("Nexon EV aur Curvv EV ki range compare karo")}
-            >
-              Compare range
-            </button>
+          {showQuickActions && (
+            <div className="ev-suggestions" aria-label="Suggested EV questions">
+              <button
+                type="button"
+                onClick={() =>
+                  setInput("Nexon EV aur Curvv EV ki range compare karo")
+                }
+              >
+                Compare range
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setInput("Fast charging ke baare mein batao")}
-            >
-              Charging
-            </button>
+              <button
+                type="button"
+                onClick={() => setInput("Fast charging ke baare mein batao")}
+              >
+                Charging
+              </button>
 
-            <button type="button" onClick={checkServices}>
-              Retry connection
-            </button>
-          </div>
+              {service === "offline" && (
+                <button type="button" onClick={checkServices}>
+                  Retry connection
+                </button>
+              )}
+            </div>
+          )}
 
           <footer className="ev-chat-footer">
             <textarea

@@ -13,6 +13,37 @@ export default function EVVoiceAgent() {
     let timerId;
     let attempts = 0;
     let dismissRequested = false;
+    let widgetObserver;
+
+    const installLauncherAlignment = () => {
+      const shadowRoot = widgetRef.current?.shadowRoot;
+
+      if (!shadowRoot || shadowRoot.querySelector('#tataev-launcher-alignment')) {
+        return;
+      }
+
+      const alignmentStyle = document.createElement('style');
+      alignmentStyle.id = 'tataev-launcher-alignment';
+      alignmentStyle.textContent = `
+        button[aria-label="Open chat"] {
+          position: fixed !important;
+          right: var(--tataev-voice-right, 24px) !important;
+          bottom: var(--tataev-voice-bottom, 20px) !important;
+          left: auto !important;
+          margin: 0 !important;
+        }
+      `;
+      shadowRoot.appendChild(alignmentStyle);
+    };
+
+    const observeWidget = () => {
+      const shadowRoot = widgetRef.current?.shadowRoot;
+
+      if (!shadowRoot || widgetObserver) return;
+
+      widgetObserver = new MutationObserver(installLauncherAlignment);
+      widgetObserver.observe(shadowRoot, { childList: true, subtree: true });
+    };
 
     const finish = () => {
       if (!cancelled) setInitialStateReady(true);
@@ -22,6 +53,8 @@ export default function EVVoiceAgent() {
       if (cancelled) return;
 
       const shadowRoot = widgetRef.current?.shadowRoot;
+      observeWidget();
+      installLauncherAlignment();
       const closedLauncher = shadowRoot?.querySelector(
         'button[aria-label="Open chat"]',
       );
@@ -59,6 +92,7 @@ export default function EVVoiceAgent() {
 
     return () => {
       cancelled = true;
+      widgetObserver?.disconnect();
       window.clearTimeout(timerId);
     };
   }, []);
