@@ -1,98 +1,88 @@
-import React, { useState } from 'react';
-import { Check, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const plans = [
-  {
-    code: 'starter',
-    name: 'Starter',
-    price: { monthly: 4999, annual: 3999 },
-    desc: 'Perfect for single-location EV dealers',
-    features: ['500 AI conversations/mo', 'Chat agent only', 'Lead capture & CRM', 'Email notifications', 'Basic analytics', '5 team members', 'Email support'],
-    cta: 'Subscribe securely',
-    highlight: false,
-  },
-  {
-    code: 'growth',
-    name: 'Growth',
-    price: { monthly: 14999, annual: 11999 },
-    desc: 'For growing EV dealerships & OEMs',
-    features: ['5,000 AI conversations/mo', 'Voice + Chat agent', 'Advanced lead scoring', 'n8n workflow builder', 'Full analytics dashboard', 'Unlimited team members', 'CRM integrations', 'Priority support', 'Custom AI training'],
-    cta: 'Subscribe securely',
-    highlight: true,
-    badge: 'Most Popular',
-  },
-  {
-    code: null,
-    name: 'Enterprise',
-    price: { monthly: null, annual: null },
-    desc: 'For large EV companies & fleets',
-    features: ['Unlimited conversations', 'Multi-location support', 'Custom voice persona', 'White-label solution', 'Dedicated AI model', 'SLA guarantee', 'On-premise option', 'Dedicated account manager', 'Custom integrations'],
-    cta: 'Contact Sales',
-    highlight: false,
-  },
-];
+import API from '../../utils/api';
+import { formatBillingPrice } from '../../utils/billingCheckout';
 
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
+  const [catalog, setCatalog] = useState(null);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setError('');
+    API.get('/payments/plans', { signal: controller.signal })
+      .then(({ data }) => setCatalog(data))
+      .catch(() => {
+        if (!controller.signal.aborted) setError('Pricing could not be loaded. Please try again.');
+      });
+    return () => controller.abort();
+  }, [retry]);
+
+  const cycle = annual ? 'annual' : 'monthly';
+  const plans = (catalog?.plans || []).filter(plan => plan.billingCycle === cycle);
 
   return (
-    <section id="pricing" className="py-24 bg-ev-dark relative">
-      <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-30" />
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <span className="section-label">Pricing</span>
-          <h2 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4">Simple, transparent pricing</h2>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto mb-6">No hidden fees. Cancel anytime.</p>
-
-          {/* Toggle */}
-          <div className="inline-flex items-center gap-3 bg-ev-card border border-ev-border rounded-full p-1">
-            <button onClick={() => setAnnual(false)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${!annual ? 'bg-ev-blue text-white' : 'text-gray-400'}`}>Monthly</button>
-            <button onClick={() => setAnnual(true)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${annual ? 'bg-ev-blue text-white' : 'text-gray-400'}`}>
-              Annual <span className="text-ev-green text-xs ml-1">-20%</span>
+    <section id="pricing" className="py-20 sm:py-24 bg-ev-dark relative">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <span className="section-label">Built for EV businesses</span>
+          <h2 className="font-display font-bold text-3xl sm:text-5xl text-white mt-3 mb-4">
+            A smaller price. A smarter workflow.
+          </h2>
+          <p className="text-gray-400">Choose a platform plan that fits your team.</p>
+          <div className="inline-flex items-center bg-ev-card border border-ev-border rounded-full p-1 mt-7" role="group" aria-label="Pricing billing cycle">
+            <button type="button" aria-pressed={!annual} onClick={() => setAnnual(false)} className={`px-5 py-2 rounded-full text-sm font-medium ${!annual ? 'bg-ev-blue text-white' : 'text-gray-400'}`}>Monthly</button>
+            <button type="button" aria-pressed={annual} onClick={() => setAnnual(true)} className={`px-5 py-2 rounded-full text-sm font-medium ${annual ? 'bg-ev-blue text-white' : 'text-gray-400'}`}>
+              Annual <span className="text-emerald-300 text-xs ml-1">Save 20%</span>
             </button>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {plans.map(({ code, name, price, desc, features, cta, highlight, badge }) => (
-            <div key={name} className={`card p-7 relative flex flex-col ${highlight ? 'border-ev-blue shadow-blue-glow scale-[1.02]' : 'border-ev-border'} hover:-translate-y-1 transition-transform duration-200`}>
-              {badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-ev-blue text-white text-xs font-display font-bold px-4 py-1 rounded-full flex items-center gap-1">
-                  <Zap size={10} className="fill-white" /> {badge}
-                </div>
-              )}
-              <div className="mb-6">
-                <div className="font-display font-bold text-white text-xl mb-1">{name}</div>
-                <div className="text-gray-500 text-sm mb-4">{desc}</div>
-                {price.monthly ? (
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-display font-extrabold text-4xl text-white">₹{(annual ? price.annual : price.monthly).toLocaleString()}</span>
-                    <span className="text-gray-500 text-sm">/mo</span>
+        {error ? (
+          <div role="alert" className="text-center text-gray-300 p-8 rounded-2xl border border-ev-border">
+            <p>{error}</p>
+            <button type="button" onClick={() => setRetry(value => value + 1)} className="btn-secondary inline-flex items-center gap-2 mt-4"><RefreshCw size={15} /> Retry pricing</button>
+          </div>
+        ) : !catalog ? (
+          <p role="status" className="text-center text-gray-400 py-12">Loading current plans…</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-5 items-stretch">
+            {plans.map(plan => {
+              const featured = plan.name === 'Growth';
+              return (
+                <article key={plan.code} className={`rounded-2xl p-6 sm:p-7 relative flex flex-col border bg-ev-card ${featured ? 'border-ev-blue shadow-blue-glow' : 'border-ev-border'}`}>
+                  {featured && <span className="absolute -top-3 left-6 bg-ev-blue text-white text-xs font-semibold px-3 py-1 rounded-full">For growing teams</span>}
+                  <h3 className="font-display font-bold text-white text-xl mb-2">{plan.name}</h3>
+                  <p className="text-gray-400 text-sm min-h-10">{plan.description}</p>
+                  <div className="mt-6 mb-2 text-white">
+                    <span className="font-display font-extrabold text-3xl tabular-nums">{formatBillingPrice(plan.amountPaise)}</span>
+                    <span className="text-gray-400 text-sm">/{annual ? 'year' : 'month'}</span>
                   </div>
-                ) : (
-                  <div className="font-display font-extrabold text-4xl text-white">Custom</div>
-                )}
-              </div>
+                  <p className="text-xs text-gray-400 mb-6">
+                    {annual ? 'Full year billed together · save 20%' : 'Billed monthly'}
+                  </p>
+                  <ul className="space-y-3 mb-7 flex-1">
+                    {plan.features.map(feature => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-gray-300"><Check size={16} className="text-emerald-400 mt-0.5 shrink-0" />{feature}</li>
+                    ))}
+                  </ul>
+                  <Link to={`/subscribe/${plan.code}`} className={`${featured ? 'btn-primary' : 'btn-secondary'} flex items-center justify-center gap-2 w-full py-3 text-sm`}>
+                    Choose {plan.name} <ArrowRight size={16} />
+                  </Link>
+                  <p className="text-center text-xs text-gray-400 mt-3">UPI AutoPay · Card · Bank mandate</p>
+                </article>
+              );
+            })}
+          </div>
+        )}
 
-              <ul className="space-y-3 mb-8 flex-1">
-                {features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm text-gray-300">
-                    <Check size={14} className="text-ev-green mt-0.5 flex-shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link to={code ? `/subscribe/${code}_${annual ? 'annual' : 'monthly'}` : '/login'} className={`text-center py-3 rounded-lg font-display font-semibold text-sm transition-all ${highlight ? 'btn-primary' : 'btn-secondary'}`}>
-                {cta}
-              </Link>
-              {code && (
-                <div className="text-center text-[10px] text-gray-600 mt-2">
-                  UPI AutoPay · Cards · Bank mandate
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="max-w-3xl mx-auto text-center mt-7 text-xs text-gray-400 leading-relaxed">
+          <p className="flex items-center justify-center gap-2 text-gray-300 mb-2"><ShieldCheck size={15} className="text-emerald-400" /> Payment details stay in Razorpay Checkout.</p>
+          <p>{catalog?.billingNote}</p>
+          <p className="mt-1">Review your recurring amount before authorising. You can request cancellation from your billing page.</p>
         </div>
       </div>
     </section>

@@ -9,6 +9,7 @@ import {
   AnimatePresence,
 } from 'framer-motion';
 import { EVExplorer, EVComparator } from '../components/Landing/EvFeatures';
+import Pricing from '../components/Landing/Pricing';
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -41,11 +42,6 @@ const fadeRight = {
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9, filter: 'blur(8px)' },
-  visible: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
 };
 
 const staggerContainer = {
@@ -789,73 +785,6 @@ function Testimonials() {
 // ============================================================
 // PRICING — Scale + Fade with stagger
 // ============================================================
-function Pricing() {
-  const plans = [
-    { code: 'starter_monthly', name: 'Starter', price: '₹4,999', period: '/mo', desc: 'Single-location EV dealers', features: ['500 AI conversations', 'Chat agent', 'Lead capture', 'Basic analytics', 'Email support'], cta: 'Subscribe securely', featured: false },
-    { code: 'growth_monthly', name: 'Growth', price: '₹14,999', period: '/mo', desc: 'Growing EV dealerships & OEMs', features: ['5,000 conversations', 'Voice + Chat', 'n8n workflows', 'CRM integrations', 'Priority support', 'Custom AI training'], cta: 'Subscribe securely', featured: true, badge: '⚡ Most Popular' },
-    { code: null, name: 'Enterprise', price: 'Custom', period: '', desc: 'Large EV companies & fleets', features: ['Unlimited conversations', 'Custom voice persona', 'White-label solution', 'Dedicated AI model', 'Account manager'], cta: 'Contact Sales', featured: false },
-  ];
-
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
-
-  return (
-    <section id="pricing" style={{ padding: '96px 24px', background: '#080C14' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <AnimatedSection style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#00D4FF', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Pricing</div>
-          <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 800, color: 'white', marginBottom: 12 }}>Simple, transparent pricing</h2>
-          <p style={{ fontSize: 15, color: '#9CA3AF' }}>No hidden fees. Cancel anytime.</p>
-        </AnimatedSection>
-
-        <motion.div
-          ref={ref}
-          variants={staggerContainer}
-          initial="hidden"
-          animate={inView ? 'visible' : 'hidden'}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20 }}
-        >
-          {plans.map(({ code, name, price, period, desc, features, cta, featured, badge }) => (
-            <motion.div
-              key={name}
-              variants={featured ? scaleIn : staggerItem}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              style={{
-                background: '#0D1422', border: `1px solid ${featured ? '#0066FF' : '#1A2540'}`,
-                borderRadius: 16, padding: 28, position: 'relative',
-                transform: featured ? 'scale(1.03)' : 'scale(1)',
-                boxShadow: featured ? '0 0 30px rgba(0,102,255,0.2)' : 'none',
-              }}
-            >
-              {badge && <div style={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', background: '#0066FF', color: 'white', fontSize: 10, fontWeight: 700, padding: '3px 12px', borderRadius: 10, whiteSpace: 'nowrap' }}>{badge}</div>}
-              <div style={{ fontWeight: 800, color: 'white', fontSize: 18, marginBottom: 5 }}>{name}</div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 14 }}>{desc}</div>
-              <div style={{ marginBottom: 20 }}>
-                <span style={{ fontSize: 32, fontWeight: 900, color: 'white' }}>{price}</span>
-                <span style={{ fontSize: 13, color: '#6B7280' }}>{period}</span>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#D1D5DB' }}><span style={{ color: '#00FF88', fontWeight: 700 }}>✓</span>{f}</li>)}
-              </ul>
-              <Link to={code ? `/subscribe/${code}` : '/login'} style={{
-                display: 'block', textAlign: 'center', padding: '11px', borderRadius: 9,
-                fontWeight: 700, fontSize: 13, textDecoration: 'none',
-                background: featured ? '#0066FF' : 'transparent',
-                color: featured ? 'white' : '#00D4FF',
-                border: featured ? 'none' : '1px solid #1A2540',
-              }}>{cta}</Link>
-              {code && (
-                <div style={{ textAlign: 'center', color: '#6B7280', fontSize: 10, marginTop: 9 }}>
-                  UPI AutoPay · Cards · Bank mandate
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
 
 // ============================================================
 // CONTACT — Fade Up

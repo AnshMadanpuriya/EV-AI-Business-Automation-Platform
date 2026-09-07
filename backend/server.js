@@ -26,6 +26,9 @@ const {
   getPlanDefinition,
   getPublicPlans,
   getRazorpayConfiguration,
+  getBillingSupport,
+  assertCheckoutConfigured,
+  validateRazorpayPlan,
   createRazorpaySubscription,
   cancelRazorpaySubscription,
   verifyCheckoutSignature,
@@ -1319,7 +1322,9 @@ app.get('/api/payments/plans', (req, res) => {
     success: true,
     provider: 'razorpay',
     mode: configuration.mode,
-    checkoutConfigured: configuration.apiConfigured,
+    checkoutConfigured: configuration.checkoutConfigured,
+    billingNote: 'Platform subscription only. AI, voice, WhatsApp and hosting usage are paid separately.',
+    support: getBillingSupport(),
     plans: getPublicPlans(),
   });
 });
@@ -1345,12 +1350,7 @@ app.post('/api/payments/subscriptions', authMiddleware, async (req, res) => {
     }
 
     const configuration = getRazorpayConfiguration();
-    if (!configuration.apiConfigured || !plan.razorpayPlanId) {
-      const error = new Error('Razorpay API keys or selected plan ID are missing');
-      error.statusCode = 503;
-      error.publicMessage = 'Secure payments are not configured for this plan yet.';
-      throw error;
-    }
+    assertCheckoutConfigured(plan);
 
     const existing = await Subscription.findOne({
       user: req.user._id,
@@ -1361,7 +1361,10 @@ app.post('/api/payments/subscriptions', authMiddleware, async (req, res) => {
     if (existing) {
       const reusable = existing.status === 'created'
         && existing.planCode === plan.code
-        && Date.now() - new Date(existing.createdAt).getTime() < 30 * 60 * 1000;
+        && existing.razorpayPlanId === plan.razorpayPlanId
+        && existing.amountPaise === plan.amountPaise
+        && existing.currency === plan.currency
+        && existing.billingCycle === plan.billingCycle;
 
       if (!reusable) {
         return res.status(409).json({
@@ -1370,6 +1373,9 @@ app.post('/api/payments/subscriptions', authMiddleware, async (req, res) => {
           subscription: toSafeSubscription(existing),
         });
       }
+
+      // Reusing an abandoned checkout must never charge an old catalog price.
+      await validateRazorpayPlan(plan);
 
       return res.json({
         success: true,
@@ -1486,8 +1492,10 @@ app.post('/api/payments/subscription/cancel', authMiddleware, async (req, res) =
       return res.json({ success: true, subscription: toSafeSubscription(subscription) });
     }
 
-    const providerSubscription = await cancelRazorpaySubscription(subscription.razorpaySubscriptionId);
-    subscription.cancelAtCycleEnd = true;
+    // An unstarted checkout has no paid billing cycle to finish.
+    const atCycleEnd = subscription.status !== 'created' && Boolean(subscription.currentEnd);
+    const providerSubscription = await cancelRazorpaySubscription(subscription.razorpaySubscriptionId, { atCycleEnd });
+    subscription.cancelAtCycleEnd = atCycleEnd;
     subscription.currentEnd = asDateFromUnix(providerSubscription.current_end) || subscription.currentEnd;
     subscription.endedAt = asDateFromUnix(providerSubscription.ended_at) || subscription.endedAt;
     if (providerSubscription.status === 'cancelled') subscription.status = 'cancelled';

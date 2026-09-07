@@ -7,45 +7,67 @@ const PLAN_CATALOG = Object.freeze({
     code: 'starter_monthly',
     name: 'Starter',
     billingCycle: 'monthly',
-    amountPaise: 499900,
+    amountPaise: 49900,
     currency: 'INR',
     totalCount: 12,
     razorpayPlanEnv: 'RAZORPAY_PLAN_STARTER_MONTHLY',
     description: 'For a single-location EV dealership',
-    features: ['500 AI conversations', 'Chat agent', 'Lead capture and CRM', 'Basic analytics', 'Email support'],
+    features: ['Chat assistant', 'Lead capture and CRM', 'Test-drive requests', 'Basic analytics', 'Email support'],
   },
   starter_annual: {
     code: 'starter_annual',
     name: 'Starter',
     billingCycle: 'annual',
-    amountPaise: 4798800,
+    amountPaise: 479040,
     currency: 'INR',
     totalCount: 3,
     razorpayPlanEnv: 'RAZORPAY_PLAN_STARTER_ANNUAL',
     description: 'Starter billed annually with 20% savings',
-    features: ['500 AI conversations', 'Chat agent', 'Lead capture and CRM', 'Basic analytics', 'Email support'],
+    features: ['Chat assistant', 'Lead capture and CRM', 'Test-drive requests', 'Basic analytics', 'Email support'],
   },
   growth_monthly: {
     code: 'growth_monthly',
     name: 'Growth',
     billingCycle: 'monthly',
-    amountPaise: 1499900,
+    amountPaise: 100000,
     currency: 'INR',
     totalCount: 12,
     razorpayPlanEnv: 'RAZORPAY_PLAN_GROWTH_MONTHLY',
     description: 'For growing EV dealerships and OEMs',
-    features: ['5,000 AI conversations', 'Voice and chat agents', 'n8n workflows', 'CRM integrations', 'Priority support'],
+    features: ['Everything in Starter', 'Voice agent connection', 'n8n workflow integration', 'Sales follow-up tools', 'Priority support'],
   },
   growth_annual: {
     code: 'growth_annual',
     name: 'Growth',
     billingCycle: 'annual',
-    amountPaise: 14398800,
+    amountPaise: 960000,
     currency: 'INR',
     totalCount: 3,
     razorpayPlanEnv: 'RAZORPAY_PLAN_GROWTH_ANNUAL',
     description: 'Growth billed annually with 20% savings',
-    features: ['5,000 AI conversations', 'Voice and chat agents', 'n8n workflows', 'CRM integrations', 'Priority support'],
+    features: ['Everything in Starter', 'Voice agent connection', 'n8n workflow integration', 'Sales follow-up tools', 'Priority support'],
+  },
+  enterprise_monthly: {
+    code: 'enterprise_monthly',
+    name: 'Enterprise',
+    billingCycle: 'monthly',
+    amountPaise: 249900,
+    currency: 'INR',
+    totalCount: 12,
+    razorpayPlanEnv: 'RAZORPAY_PLAN_ENTERPRISE_MONTHLY',
+    description: 'For EV teams that want assisted setup and support',
+    features: ['Everything in Growth', 'Assisted onboarding', 'Workflow setup guidance', 'Team training', 'Priority implementation support'],
+  },
+  enterprise_annual: {
+    code: 'enterprise_annual',
+    name: 'Enterprise',
+    billingCycle: 'annual',
+    amountPaise: 2399040,
+    currency: 'INR',
+    totalCount: 3,
+    razorpayPlanEnv: 'RAZORPAY_PLAN_ENTERPRISE_ANNUAL',
+    description: 'Enterprise billed annually with 20% savings',
+    features: ['Everything in Growth', 'Assisted onboarding', 'Workflow setup guidance', 'Team training', 'Priority implementation support'],
   },
 });
 
@@ -56,8 +78,10 @@ function getPaymentMode() {
 }
 
 function getPlanDefinition(planCode) {
-  const plan = PLAN_CATALOG[String(planCode || '').toLowerCase()];
-  if (!plan) return null;
+  if (typeof planCode !== 'string') return null;
+  const code = planCode.toLowerCase();
+  if (!Object.hasOwn(PLAN_CATALOG, code)) return null;
+  const plan = PLAN_CATALOG[code];
 
   return {
     ...plan,
@@ -66,6 +90,7 @@ function getPlanDefinition(planCode) {
 }
 
 function toPublicPlan(plan) {
+  const configuration = getRazorpayConfiguration();
   return {
     code: plan.code,
     name: plan.name,
@@ -74,7 +99,9 @@ function toPublicPlan(plan) {
     currency: plan.currency,
     description: plan.description,
     features: plan.features,
-    configured: Boolean(plan.razorpayPlanId),
+    totalCount: plan.totalCount,
+    annualSavingsPercent: plan.billingCycle === 'annual' ? 20 : 0,
+    configured: configuration.checkoutConfigured && /^plan_[A-Za-z0-9]+$/.test(plan.razorpayPlanId),
   };
 }
 
@@ -88,14 +115,33 @@ function getRazorpayConfiguration() {
   const keyId = String(process.env.RAZORPAY_KEY_ID || '').trim();
   const keySecret = String(process.env.RAZORPAY_KEY_SECRET || '').trim();
   const mode = getPaymentMode();
+  const keyMatchesMode = new RegExp(`^rzp_${mode}_[A-Za-z0-9]+$`).test(keyId);
+  const secretConfigured = Boolean(keySecret) && !/replace|your_.*secret/i.test(keySecret);
+  const webhookConfigured = String(process.env.RAZORPAY_WEBHOOK_SECRET || '').trim().length >= 32
+    && !/replace|your_.*secret/i.test(process.env.RAZORPAY_WEBHOOK_SECRET);
+  const apiConfigured = keyMatchesMode && secretConfigured;
 
   return {
     keyId,
     keySecret,
     mode,
-    apiConfigured: Boolean(keyId && keySecret),
-    webhookConfigured: Boolean(process.env.RAZORPAY_WEBHOOK_SECRET),
+    apiConfigured,
+    keyMatchesMode,
+    webhookConfigured,
+    checkoutConfigured: apiConfigured && webhookConfigured,
   };
+}
+
+function getBillingSupport() {
+  const phone = String(process.env.PAYMENT_SUPPORT_PHONE || '').replace(/[\s()+-]/g, '');
+  return { phone: /^\d{10,15}$/.test(phone) ? `+${phone}` : '' };
+}
+
+function assertCheckoutConfigured(plan) {
+  if (!getRazorpayConfiguration().checkoutConfigured
+    || !/^plan_[A-Za-z0-9]+$/.test(plan?.razorpayPlanId || '')) {
+    throw configurationError('Razorpay keys, webhook secret and a valid plan ID are required');
+  }
 }
 
 function configurationError(message) {
@@ -106,9 +152,9 @@ function configurationError(message) {
 }
 
 async function razorpayRequest(pathname, { method = 'GET', body } = {}) {
-  const { keyId, keySecret } = getRazorpayConfiguration();
-  if (!keyId || !keySecret) {
-    throw configurationError('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are required');
+  const { keyId, keySecret, apiConfigured } = getRazorpayConfiguration();
+  if (!apiConfigured) {
+    throw configurationError('Razorpay API keys are missing or do not match the selected mode');
   }
 
   const controller = new AbortController();
@@ -141,7 +187,7 @@ async function razorpayRequest(pathname, { method = 'GET', body } = {}) {
       error.providerStatus = response.status;
       error.publicMessage = response.status >= 500
         ? 'Payment provider is temporarily unavailable. Please try again.'
-        : (data.error?.description || 'Razorpay rejected the subscription request.');
+        : 'Razorpay could not start this billing request. Please contact billing support.';
       throw error;
     }
 
@@ -159,10 +205,24 @@ async function razorpayRequest(pathname, { method = 'GET', body } = {}) {
   }
 }
 
-async function createRazorpaySubscription(plan, userId) {
-  if (!plan?.razorpayPlanId) {
-    throw configurationError(`${plan?.razorpayPlanEnv || 'Razorpay plan'} is not configured`);
+async function validateRazorpayPlan(plan) {
+  assertCheckoutConfigured(plan);
+  const remote = await razorpayRequest(`/plans/${encodeURIComponent(plan.razorpayPlanId)}`);
+  const period = plan.billingCycle === 'annual' ? 'yearly' : 'monthly';
+  if (remote.id !== plan.razorpayPlanId
+    || remote.item?.amount !== plan.amountPaise
+    || remote.item?.currency !== plan.currency
+    || remote.period !== period
+    || remote.interval !== 1) {
+    const error = configurationError('The Razorpay plan price, currency or interval does not match the catalog');
+    error.publicMessage = 'This billing plan is being updated. No payment was started. Please contact billing support.';
+    throw error;
   }
+  return remote;
+}
+
+async function createRazorpaySubscription(plan, userId) {
+  await validateRazorpayPlan(plan);
 
   return razorpayRequest('/subscriptions', {
     method: 'POST',
@@ -180,7 +240,7 @@ async function createRazorpaySubscription(plan, userId) {
   });
 }
 
-async function cancelRazorpaySubscription(subscriptionId) {
+async function cancelRazorpaySubscription(subscriptionId, { atCycleEnd = true } = {}) {
   const safeId = String(subscriptionId || '').trim();
   if (!/^sub_[A-Za-z0-9]+$/.test(safeId)) {
     const error = new Error('Invalid Razorpay subscription ID');
@@ -191,7 +251,7 @@ async function cancelRazorpaySubscription(subscriptionId) {
 
   return razorpayRequest(`/subscriptions/${encodeURIComponent(safeId)}/cancel`, {
     method: 'POST',
-    body: { cancel_at_cycle_end: 1 },
+    body: { cancel_at_cycle_end: atCycleEnd ? 1 : 0 },
   });
 }
 
@@ -239,6 +299,9 @@ module.exports = {
   getPlanDefinition,
   getPublicPlans,
   getRazorpayConfiguration,
+  getBillingSupport,
+  assertCheckoutConfigured,
+  validateRazorpayPlan,
   createRazorpaySubscription,
   cancelRazorpaySubscription,
   verifyCheckoutSignature,
