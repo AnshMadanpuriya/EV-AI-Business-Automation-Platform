@@ -1,0 +1,23 @@
+BRAND: Ather
+MARKET: India
+REFERENCE CHECK: 2026-09-07
+
+Ather builds electric scooters. A brand-only request such as "give data of Ather"
+should provide a model overview, not an unclear-question error.
+
+450S: official page lists 122 / 161 km IDC range depending on variant.
+450X: official page lists 126 / 161 km IDC range depending on variant.
+Both list 90 km/h top speed. Confirm the selected model year and variant.
+Source: https://www.atherenergy.com/450
+
+450 Apex: manufacturer model directory lists 165 km IDC range.
+Source: https://www.atherenergy.com/electric-scooter-all-models
+
+Rizta: family scooter; referenced brochure lists 123 / 159 km IDC variants
+and 80 km/h top speed. The brochure may describe an older configuration.
+Source: https://media.atherenergy.com/Ather-Rizta-Brochure.pdf
+
+Do not infer current battery capacity, charging power, prices or stock from these
+range figures. Ask for the model, variant and city for a price query. Official
+page retrieval may add current evidence; otherwise label this as reference data.
+IDC is a certification cycle, not a real-world range guarantee.

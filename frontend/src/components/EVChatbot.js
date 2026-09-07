@@ -6,6 +6,11 @@ const RAG_API_URL =
 const NODE_API_URL =
   process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 
+function sourceHost(source) {
+  try { const url = new URL(source); return url.protocol === 'https:' ? url.hostname : ''; }
+  catch { return ''; }
+}
+
 const firstMessage = {
   id: 1,
   role: "assistant",
@@ -113,7 +118,7 @@ export default function EVChatbot() {
     const ragHealth = await readHealth(`${RAG_API_URL}/health`);
 
     if (ragHealth && ragHealth.ready !== false) {
-      setService(ragHealth.mode === "mistral" ? "mistral" : "rag");
+      setService(ragHealth.mode === "catalog" ? "fallback" : ragHealth.mode === "mistral" ? "mistral" : "rag");
       return;
     }
 
@@ -169,10 +174,12 @@ export default function EVChatbot() {
         content: message.text,
       }));
       const services = [
-        { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 30000 },
-        { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback", timeout: 7000 },
+        { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 40000 },
+        { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback", timeout: 28000 },
       ];
       let answer = "";
+      let answerSources = [];
+      let answerNotice = "";
 
       for (const current of services) {
         const controller = new AbortController();
@@ -192,7 +199,13 @@ export default function EVChatbot() {
 
           if (response.ok && data[current.answerKey]) {
             answer = data[current.answerKey];
-            if (data.mode === "mistral") {
+            answerSources = Array.isArray(data.sources) ? data.sources.filter(s => typeof s === "string").slice(0, 8) : [];
+            answerNotice = typeof data.notice === "string" ? data.notice : "";
+            if (data.mode === "catalog" || data.mode === "local") {
+              setService("fallback");
+            } else if (data.mode === "live-retrieval") {
+              setService("live");
+            } else if (data.mode === "mistral") {
               setService("mistral");
             } else if (current.status === "rag") {
               setService("rag");
@@ -216,6 +229,8 @@ export default function EVChatbot() {
           id: Date.now() + 1,
           role: "assistant",
           text: answer,
+          sources: answerSources,
+          notice: answerNotice,
         },
       ]);
     } catch (error) {
@@ -266,6 +281,7 @@ export default function EVChatbot() {
                   {service === "rag" && "RAG Assistant Online"}
                   {service === "mistral" && "Mistral Assistant Online"}
                   {service === "fallback" && "Local EV Assistant Online"}
+                  {service === "live" && "EV sources retrieved"}
                   {service === "checking" && "Checking AI service..."}
                   {service === "offline" && "AI service offline"}
                 </div>
@@ -317,6 +333,19 @@ export default function EVChatbot() {
 
                 <div className="ev-message-bubble">
                   <FormattedMessage text={message.text} />
+                  {message.sources?.length > 0 && (
+                    <div aria-label="Answer sources" style={{ marginTop: 10, fontSize: 12, overflowWrap: 'anywhere' }}>
+                      <strong>Sources / references</strong>
+                      {message.sources.map((source, index) => (
+                        <div key={`${source}-${index}`}>
+                          {sourceHost(source)
+                            ? <a href={source} target="_blank" rel="noopener noreferrer" style={{ color: '#62d9ff' }}>Source {index + 1}: {sourceHost(source)}</a>
+                            : <span>{source}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {message.notice && <div style={{ marginTop: 8, fontSize: 11, color: '#a5b4c7' }}>{message.notice}</div>}
                 </div>
               </div>
             ))}
@@ -390,6 +419,8 @@ export default function EVChatbot() {
           <div className="ev-chat-powered">
             {service === "fallback"
               ? "Grounded local EV knowledge"
+              : service === "live"
+                ? "AI + retrieved EV sources"
               : service === "mistral"
                 ? "Powered by Mistral AI"
                 : "Powered by Mistral AI + RAG"}

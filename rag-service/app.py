@@ -44,6 +44,7 @@ class ChatResponse(BaseModel):
     answer: str
     mode: str
     sources: list[str] = Field(default_factory=list)
+    notice: str = ""
 
 
 @app.get("/health")
@@ -69,7 +70,8 @@ def chat(request: ChatRequest):
         return ChatResponse(
             answer=result["answer"],
             mode=result["mode"],
-            sources=result["sources"]
+            sources=result["sources"],
+            notice=result.get("notice", "")
         )
 
     except Exception as error:
