@@ -1,11 +1,11 @@
 .whatsapp-smart-chat {
   position: fixed;
-  right: 24px;
-  bottom: 92px;
+  right: 20px;
+  bottom: 82px;
   z-index: 100001;
-  width: 56px;
-  min-width: 56px;
-  height: 56px;
+  width: 45px;
+  min-width: 54px;
+  height: 52px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -54,8 +54,8 @@
 }
 
 .whatsapp-smart-chat__icon-wrap {
-  width: 48px;
-  height: 48px;
+  width: 45px;
+  height: 46px;
   display: grid;
   place-items: center;
   border-radius: 50%;
