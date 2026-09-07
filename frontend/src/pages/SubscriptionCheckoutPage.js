@@ -8,41 +8,15 @@ import {
   ShieldCheck,
   Smartphone,
   XCircle,
+  Phone,
+  RefreshCw,
 } from 'lucide-react';
 import API from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { formatBillingPrice, loadRazorpayCheckout, paymentPreferenceConfig } from '../utils/billingCheckout';
 
 const ACTIVE_STATUSES = ['created', 'authenticated', 'active', 'pending', 'paused', 'halted'];
 const CHECKOUT_BLOCKING_STATUSES = ['authenticated', 'active', 'pending', 'paused', 'halted'];
-
-function loadRazorpayCheckout() {
-  if (window.Razorpay) return Promise.resolve(true);
-
-  return new Promise((resolve) => {
-    const existing = document.querySelector('script[data-razorpay-checkout]');
-    if (existing) {
-      existing.addEventListener('load', () => resolve(true), { once: true });
-      existing.addEventListener('error', () => resolve(false), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.dataset.razorpayCheckout = 'true';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
-function formatPrice(amountPaise) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amountPaise / 100);
-}
 
 function statusTone(status) {
   if (['active', 'authenticated', 'completed'].includes(status)) {
@@ -61,6 +35,11 @@ export default function SubscriptionCheckoutPage() {
   const [selectedCode, setSelectedCode] = useState(planCode || 'growth_monthly');
   const [current, setCurrent] = useState(null);
   const [mode, setMode] = useState('test');
+  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [supportPhone, setSupportPhone] = useState('');
+  const [billingNote, setBillingNote] = useState('');
+  const [checkoutConfigured, setCheckoutConfigured] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -77,6 +56,9 @@ export default function SubscriptionCheckoutPage() {
         if (!active) return;
         setPlans(plansResponse.data.plans || []);
         setMode(plansResponse.data.mode || 'test');
+        setSupportPhone(plansResponse.data.support?.phone || '');
+        setBillingNote(plansResponse.data.billingNote || '');
+        setCheckoutConfigured(Boolean(plansResponse.data.checkoutConfigured));
         setCurrent(subscriptionResponse.data.subscription || null);
       })
       .catch((error) => {
@@ -92,7 +74,11 @@ export default function SubscriptionCheckoutPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [retry]);
+
+  useEffect(() => {
+    setSelectedCode(planCode || 'growth_monthly');
+  }, [planCode]);
 
   const selectedPlan = useMemo(() => (
     plans.find((plan) => plan.code === selectedCode)
@@ -110,18 +96,18 @@ export default function SubscriptionCheckoutPage() {
   };
 
   const startCheckout = async () => {
-    if (!selectedPlan || processing) return;
+    if (!selectedPlan?.configured || !checkoutConfigured || processing || cancelling) return;
     setProcessing(true);
     setNotice(null);
 
     try {
-      const scriptReady = await loadRazorpayCheckout();
-      if (!scriptReady) throw new Error('Secure checkout could not be loaded.');
+      await loadRazorpayCheckout();
 
       const { data } = await API.post('/payments/subscriptions', {
         planCode: selectedPlan.code,
       });
       const checkout = data.checkout;
+      if (data.subscription) setCurrent(data.subscription);
 
       const razorpay = new window.Razorpay({
         key: checkout.keyId,
@@ -138,13 +124,16 @@ export default function SubscriptionCheckoutPage() {
           plan_code: data.plan.code,
         },
         theme: { color: '#0066FF' },
+        config: paymentPreferenceConfig(paymentMethod),
         handler: async (response) => {
           try {
             await API.post('/payments/subscriptions/verify', response);
             await refreshSubscription();
             setNotice({
               type: 'success',
-              text: 'Payment authorised securely. Your subscription status is being confirmed.',
+              text: data.mode === 'test'
+                ? 'Test authorisation received. No real money was charged. Refresh status after confirmation arrives.'
+                : 'Payment authorisation verified. Refresh status to see the latest confirmation.',
             });
           } catch (error) {
             setNotice({
@@ -166,12 +155,12 @@ export default function SubscriptionCheckoutPage() {
       razorpay.on('payment.failed', () => {
         setNotice({
           type: 'error',
-          text: 'Payment was not completed. No subscription access has been activated.',
+          text: 'This payment attempt was not completed. You can retry inside Razorpay or close Checkout.',
         });
-        setProcessing(false);
       });
       razorpay.open();
     } catch (error) {
+      if (error.response?.data?.subscription) setCurrent(error.response.data.subscription);
       setNotice({
         type: 'error',
         text: error.response?.data?.message || error.message || 'Checkout could not be started.',
@@ -181,7 +170,8 @@ export default function SubscriptionCheckoutPage() {
   };
 
   const cancelSubscription = async () => {
-    if (!window.confirm('Cancel this subscription at the end of its current billing cycle?')) {
+    const hasPaidCycle = current?.status !== 'created' && Boolean(current?.currentEnd);
+    if (!window.confirm(hasPaidCycle ? 'Cancel renewal at the end of this billing cycle?' : 'Cancel this unfinished subscription?')) {
       return;
     }
 
@@ -192,7 +182,9 @@ export default function SubscriptionCheckoutPage() {
       setCurrent(data.subscription);
       setNotice({
         type: 'success',
-        text: 'Cancellation scheduled for the end of the current billing cycle.',
+        text: data.subscription.cancelAtCycleEnd
+          ? 'Cancellation scheduled for the end of the current billing cycle.'
+          : 'The unfinished subscription has been cancelled.',
       });
     } catch (error) {
       setNotice({
@@ -232,12 +224,13 @@ export default function SubscriptionCheckoutPage() {
             <ShieldCheck size={14} />
             Razorpay secure checkout · {mode === 'live' ? 'Live mode' : 'Test mode'}
           </div>
-          <h1 className="font-display text-3xl sm:text-5xl font-extrabold">
-            Activate your EV AI workspace
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold">
+            Your plan. Your payment choice.
           </h1>
           <p className="text-gray-400 mt-4">
-            Pay using UPI AutoPay, supported cards or bank mandate directly inside Razorpay.
+            Choose a preferred method, then authorise your subscription in Razorpay Checkout.
           </p>
+          {mode === 'test' && <p className="text-xs text-amber-200 mt-3">Test mode · No real money is transferred.</p>}
         </div>
 
         {notice && (
@@ -247,7 +240,7 @@ export default function SubscriptionCheckoutPage() {
               : 'border-red-400/30 bg-red-400/10 text-red-100'
           }`}>
             {notice.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-            <span className="text-sm">{notice.text}</span>
+            <span className="text-sm" role="status">{notice.text}</span>
           </div>
         )}
 
@@ -270,18 +263,18 @@ export default function SubscriptionCheckoutPage() {
                   type="button"
                   onClick={cancelSubscription}
                   disabled={cancelling}
-                  className="rounded-lg border border-current/30 px-4 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-50"
+                  className="rounded-lg border border-white/20 px-4 py-2 text-xs font-semibold hover:bg-white/10 disabled:opacity-50"
                 >
-                  {cancelling ? 'Scheduling…' : 'Cancel at cycle end'}
+                  {cancelling ? 'Cancelling…' : current.currentEnd && current.status !== 'created' ? 'Cancel renewal' : 'Cancel unfinished checkout'}
                 </button>
               )}
             </div>
           </section>
         )}
 
-        <section className="max-w-3xl mx-auto rounded-3xl border border-ev-border bg-ev-card shadow-2xl overflow-hidden">
+        <section className="max-w-4xl mx-auto rounded-3xl border border-ev-border bg-ev-card shadow-2xl overflow-hidden">
           <div className="grid md:grid-cols-[1fr_0.86fr]">
-            <div className="p-6 sm:p-8">
+            <div className="p-6 sm:p-8 min-w-0">
               <div className="text-xs text-ev-cyan uppercase tracking-widest mb-2">Selected plan</div>
               <h2 className="font-display font-bold text-3xl">{selectedPlan?.name || 'Plan'}</h2>
               <p className="text-sm text-gray-400 mt-2">{selectedPlan?.description}</p>
@@ -291,6 +284,8 @@ export default function SubscriptionCheckoutPage() {
                   <button
                     type="button"
                     key={plan.code}
+                    aria-pressed={selectedPlan?.code === plan.code}
+                    disabled={processing || cancelling}
                     onClick={() => setSelectedCode(plan.code)}
                     className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold capitalize ${
                       selectedPlan?.code === plan.code
@@ -303,9 +298,9 @@ export default function SubscriptionCheckoutPage() {
                 ))}
               </div>
 
-              <div className="mt-7 flex items-end gap-2">
-                <span className="font-display text-4xl font-extrabold">
-                  {selectedPlan ? formatPrice(selectedPlan.amountPaise) : '—'}
+              <div className="mt-7 flex flex-wrap items-end gap-2">
+                <span className="font-display text-3xl font-extrabold tabular-nums">
+                  {selectedPlan ? formatBillingPrice(selectedPlan.amountPaise) : '—'}
                 </span>
                 <span className="text-gray-500 mb-1">
                   /{selectedPlan?.billingCycle === 'annual' ? 'year' : 'month'}
@@ -313,7 +308,12 @@ export default function SubscriptionCheckoutPage() {
               </div>
 
               {selectedPlan?.billingCycle === 'annual' && (
-                <div className="text-xs text-emerald-300 mt-2">Includes 20% annual billing savings</div>
+                <div className="text-xs text-emerald-300 mt-2">Save 20% · Full year billed together</div>
+              )}
+              {selectedPlan && (
+                <p className="text-xs text-gray-400 leading-relaxed mt-3">
+                  Recurs {selectedPlan.billingCycle === 'annual' ? 'yearly' : 'monthly'} for up to {selectedPlan.totalCount} billing cycles, unless cancelled earlier. Review the mandate amount in Checkout.
+                </p>
               )}
 
               <ul className="space-y-3 mt-7">
@@ -327,22 +327,34 @@ export default function SubscriptionCheckoutPage() {
             </div>
 
             <div className="border-t md:border-t-0 md:border-l border-ev-border bg-black/20 p-6 sm:p-8 flex flex-col justify-center">
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="rounded-xl border border-ev-border bg-ev-darker/60 p-4 text-center">
-                  <Smartphone size={22} className="mx-auto text-ev-cyan" />
-                  <div className="text-xs text-gray-300 mt-2">UPI AutoPay</div>
+              <fieldset disabled={processing || cancelling} className="mb-5">
+                <legend className="text-sm text-gray-300 mb-3">Preferred payment method</legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'upi', label: 'UPI AutoPay', Icon: Smartphone },
+                    { value: 'card_bank', label: 'Card / Bank', Icon: CreditCard },
+                  ].map(({ value, label, Icon }) => (
+                    <label key={value} className={`relative cursor-pointer rounded-xl border p-4 text-center transition-colors ${paymentMethod === value ? 'border-ev-blue bg-ev-blue/15' : 'border-ev-border bg-ev-darker/60 hover:border-gray-500'}`}>
+                      <input type="radio" name="payment-method" value={value} checked={paymentMethod === value} onChange={() => setPaymentMethod(value)} className="sr-only peer" />
+                      <span className="absolute inset-0 rounded-xl peer-focus-visible:ring-2 peer-focus-visible:ring-ev-cyan" />
+                      <Icon size={24} className="mx-auto text-ev-cyan" />
+                      <span className="block text-sm text-white mt-2">{label}</span>
+                      <span aria-hidden="true" className={`block text-xs mt-1 ${paymentMethod === value ? 'text-blue-200' : 'text-gray-500'}`}>{paymentMethod === value ? 'Selected' : 'Select'}</span>
+                    </label>
+                  ))}
                 </div>
-                <div className="rounded-xl border border-ev-border bg-ev-darker/60 p-4 text-center">
-                  <CreditCard size={22} className="mx-auto text-ev-cyan" />
-                  <div className="text-xs text-gray-300 mt-2">Card / Bank</div>
-                </div>
-              </div>
+              </fieldset>
+              <p className="text-xs text-gray-400 leading-relaxed mb-5">
+                Your choice is highlighted in Checkout. Available UPI apps, cards and bank mandates depend on Razorpay and your bank.
+              </p>
 
               <button
                 type="button"
                 onClick={startCheckout}
                 disabled={
                   processing
+                  || cancelling
+                  || !checkoutConfigured
                   || !selectedPlan?.configured
                   || Boolean(checkoutBlocked)
                 }
@@ -351,16 +363,18 @@ export default function SubscriptionCheckoutPage() {
                 {processing ? <Loader2 className="animate-spin" size={18} /> : <LockKeyhole size={18} />}
                 {processing
                   ? 'Opening secure checkout…'
-                  : checkoutBlocked
+                  : !checkoutConfigured || !selectedPlan?.configured
+                    ? 'Payments opening soon'
+                    : checkoutBlocked
                     ? 'Subscription already exists'
-                    : 'Continue to secure payment'}
+                    : paymentMethod === 'upi' ? 'Continue with UPI AutoPay' : 'Continue with card / bank'}
               </button>
 
-              {!selectedPlan?.configured && (
-                <p className="text-xs text-amber-300 text-center mt-3">
-                  Razorpay Plan ID is not configured for this billing option.
-                </p>
-              )}
+              {(!selectedPlan?.configured || !checkoutConfigured) && <p role="status" className="text-xs text-amber-200 leading-relaxed text-center mt-3">Online payments for this plan are not ready yet. Billing support can help you get started.</p>}
+              <div className="flex flex-wrap justify-center gap-4 mt-4">
+                <button type="button" disabled={processing || cancelling} onClick={() => setRetry(value => value + 1)} className="inline-flex items-center gap-1.5 text-xs text-blue-200 hover:text-white"><RefreshCw size={13} /> Refresh status</button>
+                {supportPhone && <a href={`tel:${supportPhone}`} className="inline-flex items-center gap-1.5 text-xs text-blue-200 hover:text-white"><Phone size={13} /> Billing help</a>}
+              </div>
 
               <div className="mt-6 space-y-3 text-xs text-gray-500 leading-relaxed">
                 <p className="flex items-start gap-2">
@@ -368,7 +382,7 @@ export default function SubscriptionCheckoutPage() {
                   Card, bank and UPI details are entered only in Razorpay Checkout and are never stored by this application.
                 </p>
                 <p>
-                  Signed backend verification and webhooks control subscription access. Availability of UPI AutoPay depends on your Razorpay account and the customer’s supported app or bank.
+                  {billingNote}
                 </p>
               </div>
             </div>

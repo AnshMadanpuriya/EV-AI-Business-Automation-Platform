@@ -63,3 +63,33 @@ test('chat and Python context endpoints answer Ather without MongoDB or AI keys'
     }
   });
 });
+
+test('public billing catalog works without MongoDB and contains all three tiers', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/payments/plans`);
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.plans.length, 6);
+    assert.equal(body.plans.find(plan => plan.code === 'starter_monthly').amountPaise, 49900);
+    assert.equal(body.plans.find(plan => plan.code === 'growth_monthly').amountPaise, 100000);
+    assert.equal(body.plans.find(plan => plan.code === 'enterprise_monthly').amountPaise, 249900);
+    assert.equal(JSON.stringify(body).includes('keySecret'), false);
+    assert.equal(JSON.stringify(body).includes('razorpayPlanId'), false);
+  });
+});
+
+test('chat serves the requested list and scoped follow-up through the public API', async () => {
+  await withServer(async base => {
+    const first = 'Give me 20 list of both two vehicles and four vehicles';
+    for (const [message, history, count] of [[first, [], 20],
+      ['which 2 vehicle are availbe from this companies ?', [{ role: 'user', content: first }], 8]]) {
+      const response = await fetch(`${base}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history }) });
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal((body.response.match(/^\d+\. /gm) || []).length, count);
+      assert.equal(body.mode, 'catalog');
+      assert.equal(body.notice, '');
+    }
+  });
+});

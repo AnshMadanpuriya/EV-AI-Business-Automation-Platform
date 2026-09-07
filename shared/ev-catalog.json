@@ -172,7 +172,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tata",
@@ -203,7 +204,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tata",
@@ -234,7 +236,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tata",
@@ -265,7 +268,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tata",
@@ -296,7 +300,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tata",
@@ -327,7 +332,8 @@
       "source_url": "https://ev.tatamotors.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Mahindra",
@@ -358,7 +364,8 @@
       "source_url": "https://www.mahindraelectricsuv.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Mahindra",
@@ -389,7 +396,8 @@
       "source_url": "https://www.mahindraelectricsuv.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Mahindra",
@@ -420,7 +428,8 @@
       "source_url": "https://www.mahindraelectricsuv.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "MG",
@@ -451,7 +460,8 @@
       "source_url": "https://www.mgmotor.co.in/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "MG",
@@ -482,7 +492,8 @@
       "source_url": "https://www.mgmotor.co.in/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "MG",
@@ -513,7 +524,8 @@
       "source_url": "https://www.mgmotor.co.in/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Hyundai",
@@ -544,7 +556,8 @@
       "source_url": "https://www.hyundai.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Ola",
@@ -575,7 +588,8 @@
       "source_url": "https://www.olaelectric.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "two_wheeler"
     },
     {
       "make": "Ola",
@@ -606,7 +620,8 @@
       "source_url": "https://www.olaelectric.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "two_wheeler"
     },
     {
       "make": "Ather",
@@ -618,7 +633,16 @@
       "source_url": "https://www.atherenergy.com/450",
       "market": "India",
       "verified_at": "2026-09-07",
-      "data_note": "Manufacturer range reference checked 2026-09-07; confirm selected variant. Battery and charging are not confirmed here."
+      "data_note": "Manufacturer range reference checked 2026-09-07; confirm selected variant. Battery and charging are not confirmed here.",
+      "vehicle_type": "two_wheeler",
+      "price_reference": {
+        "amount_inr": 148998,
+        "label": "Manufacturer advertised starting price",
+        "source_url": "https://www.atherenergy.com/450",
+        "checked_at": "2026-09-07",
+        "market": "India",
+        "is_on_road_quote": false
+      }
     },
     {
       "make": "Ather",
@@ -626,11 +650,20 @@
       "car_body": "Scooter",
       "source": "reference-catalog",
       "market": "India",
-      "electric_range": "123 / 159 km (IDC, brochure variants)",
+      "electric_range": "123 / 161 km IDC (variant dependent)",
       "top_speed": "80 km/h",
-      "source_url": "https://media.atherenergy.com/Ather-Rizta-Brochure.pdf",
+      "source_url": "https://www.atherenergy.com/rizta",
       "verified_at": "2026-09-07",
-      "data_note": "Brochure reference; confirm model year and variant. Not live availability."
+      "data_note": "Manufacturer page reference checked 2026-09-07; range depends on battery variant. Confirm current variant and city quote.",
+      "vehicle_type": "two_wheeler",
+      "price_reference": {
+        "amount_inr": 121999,
+        "label": "Manufacturer advertised starting price for Rizta S",
+        "source_url": "https://www.atherenergy.com/rizta",
+        "checked_at": "2026-09-07",
+        "market": "India",
+        "is_on_road_quote": false
+      }
     },
     {
       "make": "TVS",
@@ -661,7 +694,8 @@
       "source_url": "https://www.tvsmotor.com/electric-scooters/tvs-iqube",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "two_wheeler"
     },
     {
       "make": "Bajaj",
@@ -692,7 +726,8 @@
       "source_url": "https://www.chetak.com/",
       "market": "India",
       "verified_at": null,
-      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed."
+      "data_note": "Legacy reference specification; model year/variant may differ. Not a live price or stock feed.",
+      "vehicle_type": "two_wheeler"
     },
     {
       "make": "Tesla",
@@ -704,7 +739,8 @@
       "electric_range": "500 km (WLTP)",
       "top_speed": "201 km/h",
       "acceleration_0_100_kmh": "5.9 sec",
-      "verified_at": "2026-09-07"
+      "verified_at": "2026-09-07",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tesla",
@@ -712,7 +748,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.tesla.com/model3",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tesla",
@@ -720,7 +757,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.tesla.com/models",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Tesla",
@@ -728,7 +766,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.tesla.com/modelx",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BMW",
@@ -739,7 +778,16 @@
       "data_note": "India iX1 LWB manufacturer reference checked 2026-09-07; confirm variant. Not live availability.",
       "electric_range": "Up to 546 km (MIDC)",
       "battery_capacity": "66.4 kWh",
-      "verified_at": "2026-09-07"
+      "verified_at": "2026-09-07",
+      "vehicle_type": "four_wheeler",
+      "price_reference": {
+        "amount_inr": 4990000,
+        "label": "Manufacturer advertised introductory price",
+        "source_url": "https://www.bmw.in/en/all-models/bmw-i/iX1/2025/bmw-ix1-highlights.html",
+        "checked_at": "2026-09-07",
+        "market": "India",
+        "is_on_road_quote": false
+      }
     },
     {
       "make": "BMW",
@@ -747,7 +795,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.bmw.in/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BMW",
@@ -755,7 +804,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.bmw.in/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BMW",
@@ -763,7 +813,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.bmw.in/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BMW",
@@ -771,7 +822,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.bmw.in/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Hyundai",
@@ -779,7 +831,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.hyundai.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Hyundai",
@@ -787,7 +840,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.hyundai.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Hyundai",
@@ -795,7 +849,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.hyundai.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Kia",
@@ -803,7 +858,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.kia.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Kia",
@@ -811,7 +867,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.kia.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Audi",
@@ -819,7 +876,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.audi.in/en/models/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Audi",
@@ -827,7 +885,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.audi.in/en/models/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Audi",
@@ -835,7 +894,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.audi.in/en/models/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Nissan",
@@ -843,7 +903,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.nissanusa.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Nissan",
@@ -851,7 +912,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.nissanusa.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Volkswagen",
@@ -859,7 +921,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.vw.com/en/models/id-4.html",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Volkswagen",
@@ -867,7 +930,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.vw.com/en/models/id-4.html",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Volvo",
@@ -875,7 +939,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.volvocars.com/intl/cars/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Volvo",
@@ -883,7 +948,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.volvocars.com/intl/cars/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Volvo",
@@ -891,7 +957,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://www.volvocars.com/intl/cars/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Toyota",
@@ -899,7 +966,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.toyota.com/bz/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Ford",
@@ -907,7 +975,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.ford.com/suvs/mach-e/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Ford",
@@ -915,7 +984,8 @@
       "market": "Global",
       "source": "reference-catalog",
       "source_url": "https://www.ford.com/suvs/mach-e/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BYD",
@@ -923,7 +993,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://bydautoindia.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BYD",
@@ -931,7 +1002,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://bydautoindia.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "BYD",
@@ -939,7 +1011,8 @@
       "market": "India / Global",
       "source": "reference-catalog",
       "source_url": "https://bydautoindia.com/",
-      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source."
+      "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
+      "vehicle_type": "four_wheeler"
     },
     {
       "make": "Ather",
@@ -949,7 +1022,16 @@
       "source_url": "https://www.atherenergy.com/electric-scooter-all-models",
       "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
       "electric_range": "122 / 161 km (IDC, variant-dependent)",
-      "verified_at": "2026-09-07"
+      "verified_at": "2026-09-07",
+      "vehicle_type": "two_wheeler",
+      "price_reference": {
+        "amount_inr": 135999,
+        "label": "Manufacturer advertised starting price",
+        "source_url": "https://www.atherenergy.com/450",
+        "checked_at": "2026-09-07",
+        "market": "India",
+        "is_on_road_quote": false
+      }
     },
     {
       "make": "Ather",
@@ -959,7 +1041,8 @@
       "source_url": "https://www.atherenergy.com/electric-scooter-all-models",
       "data_note": "Model directory reference. Exact specifications, current price and availability require the selected market/variant and a current source.",
       "electric_range": "165 km (IDC)",
-      "verified_at": "2026-09-07"
+      "verified_at": "2026-09-07",
+      "vehicle_type": "two_wheeler"
     }
   ]
 }

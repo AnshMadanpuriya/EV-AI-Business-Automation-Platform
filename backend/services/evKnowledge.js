@@ -1,4 +1,5 @@
 const catalog = require('../../shared/ev-catalog.json');
+const { resolveList, listAnswer, priceLine } = require('./evConversation');
 
 const normalize = (value) => String(value || '').normalize('NFKC').toLowerCase()
   .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
@@ -159,6 +160,10 @@ async function officialPage(brand) {
 }
 
 async function retrieveKnowledge(question, history = []) {
+  const listing = resolveList(question, history, identifyVehicles);
+  if (listing) return { ...listing, context: JSON.stringify({ policy: catalog.notice, ...listing }),
+    brands: [...new Set(listing.vehicles.map(v => v.make.toLowerCase()))],
+    sources: [...new Set(listing.vehicles.flatMap(v => [v.source_url, v.price_reference?.source_url]).filter(Boolean))], pages: [], mode: 'catalog', notice: '' };
   const matches = identifyVehicles(question, history);
   const lookups = matches.brands.slice(0, 2).map(async brand => {
     const selected = matches.vehicles.filter(v => v.make === brand.make);
@@ -171,24 +176,26 @@ async function retrieveKnowledge(question, history = []) {
   const providerRows = responses.flatMap(r => r.search.vehicles.filter(v => v.source === 'api-ninjas'));
   const vehicles = [...providerRows, ...selected].slice(0, 18);
   const pages = responses.map(r => r.web).filter(p => p.status === 'ok');
-  const sources = [...new Set([...vehicles.map(v => v.source_url), ...pages.map(p => p.source_url)].filter(Boolean))];
+  const sources = [...new Set([...vehicles.flatMap(v => [v.source_url, v.price_reference?.source_url]), ...pages.map(p => p.source_url)].filter(Boolean))];
   const context = JSON.stringify({ policy: catalog.notice, vehicles,
     live_pages: pages, live_status: responses.map(r => ({ provider: r.search.provider, web: r.web.status })) });
-  return { context, sources, vehicles, pages, mode: pages.length || providerRows.length ? 'live-retrieval' : 'catalog',
+  return { context, sources, vehicles, pages, brands: matches.brands.map(b => b.make.toLowerCase()), mode: pages.length || providerRows.length ? 'live-retrieval' : 'catalog',
     notice: pages.length ? 'Official page excerpts retrieved; check the cited variant and region.'
-      : 'Live official page unavailable or no matching brand. Reference data is not a current price quote.' };
+      : vehicles.length ? 'Reference catalog; confirm the variant and current dealer quote.' : '' };
 }
 
 function localAnswer(question, knowledge) {
+  if (knowledge.intent?.kind === 'list') return listAnswer(question, knowledge);
   const vehicles = knowledge.vehicles || [];
   const current = /price|cost|on road|latest|current|today|aaj|abhi|subsid/i.test(question);
-  if (vehicles.length) return [current ? '**Current price / availability:**' : '**EV details:**',
-    ...(current ? ['Exact current on-road price is not confirmed here. Please specify your city and variant; use the official source for a quote.'] : []),
-    ...vehicles.slice(0, 8).map(v => `- **${v.make} ${v.model}:** ${[
+  if (vehicles.length) return [current ? '**EV price references:**' : '**EV model overview:**',
+    ...vehicles.slice(0, 18).flatMap(v => [`### ${v.make} ${v.model}`, ...[
+      (current || v.price_reference) && priceLine(v),
       v.electric_range && `range ${v.electric_range}`, v.battery_capacity && `battery ${v.battery_capacity}`,
       v.charge_power_max && `charging ${v.charge_power_max}`, v.top_speed && `top speed ${v.top_speed}`,
-    ].filter(Boolean).join('; ') || 'Exact specifications need a variant-specific source.'}`),
-    '', 'Reference specifications; model year, market and test cycle can differ. Which model or variant would you like to explore?',
+    ].filter(Boolean).map(detail => `- ${detail}`), ...(!v.electric_range && !v.price_reference ? ['- Detailed specifications need a variant-specific source.'] : [])]),
+    '', 'Reference specifications and advertised prices; model year, market and test cycle can differ. Exact current on-road price is not confirmed here.',
+    current ? 'Which city and variant do you want a quote for?' : 'Which model would you like to compare or explore?',
   ].join('\n');
   if (/^(hi|hello|hey|namaste)\b/i.test(question)) return 'Namaste! Ask about an EV brand or model, for example “give data of Ather”, “BMW iX1 range” or “Tesla Model Y charging”.';
   if (/charg|battery/i.test(question)) return 'EVs use model-specific AC or DC charging. Battery size, charger power and state of charge affect charging time. Which vehicle are you considering?';

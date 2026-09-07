@@ -68,3 +68,28 @@ References:
 - https://media.atherenergy.com/Ather-Rizta-Brochure.pdf
 - https://www.tesla.com/en_in/modely
 - https://www.bmw.in/en/all-models/bmw-i/iX1/2025/bmw-ix1-highlights.html
+
+## Structured conversations and dated price references
+
+The same `fix/ev-search-rag-coverage` branch now includes the affordable billing changes from PR #3 (Starter ₹499/month, Growth ₹1,000/month and Enterprise ₹2,499/month). Restart both backend and frontend after pulling: the landing page and checkout read the backend catalog.
+
+EV chat supports counted model lists, two-/four-wheeler categories, and scoped follow-ups without requiring an AI key or a live provider call. Examples covered in the shared regression fixtures:
+
+- `Give me 20 list of both two vehicles and four vehicles` → 20 catalog entries grouped into 8 two-wheelers and 12 four-wheelers.
+- `which 2 vehicle are availbe from this companies ?` → the two-wheeler category from the preceding scope.
+- `Ather and TVS models`, then `which two-wheelers are available from these companies?` → only those brands.
+- `Show 20 two-wheelers` → the 8 recorded entries with an explicit shortfall, without inventing another 12.
+- `Ather 450X price` → a manufacturer advertised price reference with its checked date; a current city/variant on-road quote remains separate.
+
+`vehicle_type` and optional `price_reference` live in `shared/ev-catalog.json`. Every reference price has an amount in INR, a precise label, source URL, checked date and `is_on_road_quote: false`. Prices are not available for every catalog model. Ather 450S/450X and Rizta starting prices were checked against https://www.atherenergy.com/450 and https://www.atherenergy.com/rizta on 2026-09-07. BMW iX1 LWB's reference is explicitly an advertised introductory price from its linked manufacturer page. Never replace these with an unlabeled EMI, battery-rental upfront amount or another city's on-road quote.
+
+This is a retrieval and response-routing improvement, not foundation-model fine-tuning. General questions still use the configured Mistral service and retrieved context; catalog coverage is finite and does not prove current inventory. The live page and API adapters retain timeouts, caching and source boundaries. No real payment, Mistral completion or dealer inventory transaction is part of the automated tests.
+
+Run the conversation regressions:
+
+```powershell
+npm --prefix backend test
+python -m unittest discover -s rag-service -p "test_ev_catalog.py"
+```
+
+The browser formats numbered answers and collapses references, keeping more space for the actual answer. Long prior messages are bounded to the Python API's history limit.

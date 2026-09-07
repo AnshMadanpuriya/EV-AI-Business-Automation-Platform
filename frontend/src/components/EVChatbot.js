@@ -46,13 +46,14 @@ function FormattedMessage({ text }) {
           );
         }
 
+        const numbered = value.match(/^(\d+)\.\s+(.*)$/);
         const bullet = value.match(/^[-*]\s+(.*)$/);
 
-        if (bullet) {
+        if (bullet || numbered) {
           return (
             <div className="ev-message-bullet" key={index}>
-              <span>•</span>
-              <span>{formatBold(bullet[1])}</span>
+              <span>{numbered ? `${numbered[1]}.` : '•'}</span>
+              <span>{formatBold(numbered ? numbered[2] : bullet[1])}</span>
             </div>
           );
         }
@@ -171,7 +172,7 @@ export default function EVChatbot() {
     try {
       const history = messages.slice(-8).map((message) => ({
         role: message.role,
-        content: message.text,
+        content: message.text.slice(0, 1200),
       }));
       const services = [
         { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 40000 },
@@ -334,8 +335,8 @@ export default function EVChatbot() {
                 <div className="ev-message-bubble">
                   <FormattedMessage text={message.text} />
                   {message.sources?.length > 0 && (
-                    <div aria-label="Answer sources" style={{ marginTop: 10, fontSize: 12, overflowWrap: 'anywhere' }}>
-                      <strong>Sources / references</strong>
+                    <details aria-label="Answer sources" style={{ marginTop: 10, fontSize: 12, overflowWrap: 'anywhere' }}>
+                      <summary style={{ cursor: 'pointer' }}>Sources / references ({message.sources.length})</summary>
                       {message.sources.map((source, index) => (
                         <div key={`${source}-${index}`}>
                           {sourceHost(source)
@@ -343,7 +344,7 @@ export default function EVChatbot() {
                             : <span>{source}</span>}
                         </div>
                       ))}
-                    </div>
+                    </details>
                   )}
                   {message.notice && <div style={{ marginTop: 8, fontSize: 11, color: '#a5b4c7' }}>{message.notice}</div>}
                 </div>

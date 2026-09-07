@@ -101,3 +101,43 @@ test('timeouts, blocked pages and response size limits leave an honest fallback'
   await assert.rejects(readLimited(new Response('123456'), 3), /too large/);
   assert.match(localAnswer('BMW price today', result), /not confirmed/i);
 });
+
+test('requested counts, categories and conversational follow-ups work without AI or network', async t => {
+  settings(t);
+  t.mock.method(global, 'fetch', async () => { throw new Error('No network expected'); });
+  for (const entry of require('../../shared/ev-chat-cases.json')) {
+    const knowledge = await retrieveKnowledge(entry.question, entry.history || []);
+    const answer = localAnswer(entry.question, knowledge);
+    if (entry.detail) { assert.match(answer, /450X/); continue; }
+    assert.equal(knowledge.vehicles.length, entry.count, entry.question);
+    assert.equal(knowledge.vehicles.filter(v => v.vehicle_type === 'two_wheeler').length, entry.two);
+    assert.equal(knowledge.vehicles.filter(v => v.vehicle_type === 'four_wheeler').length, entry.four);
+    assert.equal((answer.match(/^\d+\. /gm) || []).length, entry.count);
+    if (entry.makes) assert.ok(knowledge.vehicles.every(v => entry.makes.includes(v.make)));
+    if (entry.shortfall) assert.match(answer, /requested 20; only 8/);
+    if (entry.price) assert.ok(answer.includes(entry.price));
+    assert.doesNotMatch(answer, /Which brand should I show|General AI answers require/);
+    assert.equal(knowledge.notice, '');
+  }
+});
+
+test('known reference prices include date and unknown prices are not fabricated', async t => {
+  settings(t);
+  const known = await retrieveKnowledge('Ather 450X price');
+  const answer = localAnswer('Ather 450X price', known);
+  assert.match(answer, /₹1,48,998/);
+  assert.match(answer, /2026-09-07/);
+  assert.match(answer, /advertised starting price/);
+  assert.match(answer, /on-road price is not confirmed/);
+  const unknown = await retrieveKnowledge('BMW i4 price');
+  assert.doesNotMatch(localAnswer('BMW i4 price', unknown), /₹/);
+  assert.match(localAnswer('BMW i4 price', unknown), /verified amount is not available/);
+});
+
+
+test('a single-model specification question is not mistaken for a category list', async t => {
+  settings(t);
+  const knowledge = await retrieveKnowledge('what is the range of Tesla Model 3 car?');
+  assert.equal(knowledge.intent, undefined);
+  assert.ok(knowledge.vehicles.every(v => v.model === 'Model 3'));
+});

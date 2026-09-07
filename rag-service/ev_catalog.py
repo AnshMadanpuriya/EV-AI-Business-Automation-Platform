@@ -5,6 +5,7 @@ import re
 import unicodedata
 from pathlib import Path
 from urllib.request import Request, urlopen
+from ev_conversation import resolve_list, list_answer, price_line
 
 CATALOG = json.loads((Path(__file__).resolve().parent.parent / 'shared' / 'ev-catalog.json').read_text(encoding='utf-8'))
 
@@ -40,15 +41,22 @@ def identify(question, history=None):
 
 
 def reference_knowledge(question, history=None):
+    listing = resolve_list(question, history, identify, CATALOG)
+    if listing is not None:
+        return {**listing, 'context': json.dumps({'policy': CATALOG['notice'], **listing}, ensure_ascii=False),
+                'brands': list(dict.fromkeys(v['make'].lower() for v in listing['vehicles'])),
+                'sources': list(dict.fromkeys(url for v in listing['vehicles'] for url in [v['source_url'], v.get('price_reference', {}).get('source_url')] if url)), 'mode': 'catalog', 'notice': ''}
     brands, vehicles = identify(question, history)
     return {'context': json.dumps({'policy': CATALOG['notice'], 'vehicles': vehicles}, ensure_ascii=False),
             'vehicles': vehicles, 'brands': [b['make'].lower() for b in brands],
-            'sources': list(dict.fromkeys(v['source_url'] for v in vehicles)), 'mode': 'catalog',
-            'notice': 'Reference catalog; live data could not be checked.'}
+            'sources': list(dict.fromkeys(url for v in vehicles for url in [v['source_url'], v.get('price_reference', {}).get('source_url')] if url)), 'mode': 'catalog',
+            'notice': 'Reference catalog; confirm the variant and current dealer quote.' if vehicles else ''}
 
 
 def retrieve_knowledge(question, history=None):
     reference = reference_knowledge(question, history)
+    if reference.get('intent', {}).get('kind') == 'list':
+        return reference
     # Fixed server configuration, never a URL supplied by a chat user.
     endpoint = os.getenv('EV_KNOWLEDGE_API_URL', 'http://127.0.0.1:5000/api/ev/context')
     if os.getenv('EV_LIVE_CONTEXT_ENABLED', 'true').lower() == 'false':
@@ -69,16 +77,24 @@ def retrieve_knowledge(question, history=None):
 
 
 def reference_answer(question, knowledge):
+    if knowledge.get('intent', {}).get('kind') == 'list':
+        return list_answer(question, knowledge)
     vehicles = knowledge.get('vehicles', [])
     if vehicles:
-        lines = ['**EV details:**']
-        if re.search(r'price|cost|on.?road|latest|current|today|aaj|abhi|subsid', question, re.I):
-            lines.append('Exact current on-road price is not confirmed here. Please specify your city and variant and check the official source for a quote.')
-        for v in vehicles[:8]:
-            specs = '; '.join(f'{label}: {v[field]}' for field, label in [('electric_range', 'range'),
-                ('battery_capacity', 'battery'), ('charge_power_max', 'charging'), ('top_speed', 'top speed')] if v.get(field))
-            lines.append(f"- **{v['make']} {v['model']}:** {specs or 'Exact specifications need a variant-specific source.'}")
-        lines.extend(['', 'Reference specifications; model year, market and range test cycle can differ. Which model or variant would you like to explore?'])
+        current = bool(re.search(r'price|cost|on.?road|latest|current|today|aaj|abhi|subsid', question, re.I))
+        lines = ['**EV price references:**' if current else '**EV model overview:**']
+        for v in vehicles[:18]:
+            lines.append(f"### {v['make']} {v['model']}")
+            if current or v.get('price_reference'):
+                lines.append('- ' + price_line(v))
+            for field, label in [('electric_range', 'range'), ('battery_capacity', 'battery'),
+                                 ('charge_power_max', 'charging'), ('top_speed', 'top speed')]:
+                if v.get(field):
+                    lines.append(f'- {label}: {v[field]}')
+            if not v.get('electric_range') and not v.get('price_reference'):
+                lines.append('- Detailed specifications need a variant-specific source.')
+        lines.extend(['', 'Reference specifications and advertised prices; model year, market and test cycle can differ. Exact current on-road price is not confirmed here.',
+                      'Which city and variant do you want a quote for?' if current else 'Which model would you like to compare or explore?'])
         return '\n'.join(lines)
     if re.match(r'^(hi|hello|hey|namaste)\b', question, re.I):
         return 'Namaste! Ask about an EV brand or model, for example “give data of Ather” or “BMW iX1 range”.'
