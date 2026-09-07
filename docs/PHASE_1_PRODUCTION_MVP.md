@@ -13,7 +13,7 @@ This phase turns the existing EV showcase into a measurable dealership sales wor
 - Owner command centre with live attention queue, funnel metrics, upcoming drives and automation failures.
 - Persistent chatbot sessions for a real owner conversation inbox.
 - API rate limits, security headers, CORS allowlist, bounded JSON payloads and stricter input validation.
-- Admin/agent/viewer role checks; only the first account becomes an owner admin by default.
+- Admin/agent/viewer staff checks; public signup creates a customer (`user`) and never an owner admin.
 - Signed n8n event envelopes when `N8N_WEBHOOK_SECRET` is configured.
 - Unit tests for lead scoring and request validation.
 - EV-card test-drive CTA with selected-model prefill, home/showroom preference, address, PIN code and consent.
@@ -47,7 +47,7 @@ Use `backend/.env.example` as the source of truth. Never commit `backend/.env`.
 MONGODB_URI=mongodb://127.0.0.1:27017/tatamotors-ev
 JWT_SECRET=replace_with_a_random_secret_of_at_least_32_characters
 JWT_EXPIRES_IN=8h
-ALLOW_PUBLIC_REGISTRATION=false
+ALLOW_PUBLIC_REGISTRATION=true
 FRONTEND_URLS=http://localhost:3000
 N8N_AUTOMATION_WEBHOOK_URL=http://localhost:5678/webhook/tataev-automation
 N8N_BOOKING_WEBHOOK_URL=http://localhost:5678/webhook/tataev-booking-notifications
@@ -165,3 +165,20 @@ npm --prefix frontend audit --omit=dev
 4. Decide lead response SLA and which staff receive hot-lead/handoff alerts.
 5. Add organisation-level tenancy and role-based permissions before selling to multiple dealerships.
 6. Deploy n8n with a persistent database and public HTTPS webhook; a laptop-only n8n instance is suitable for development, not 24/7 production.
+
+## Customer signup configuration
+
+For an existing checkout that still reports registration closed, run from the project root:
+
+```powershell
+npm run signup:enable
+npm run dev:all
+```
+
+Stop the previous development server first. `signup:enable` changes only `ALLOW_PUBLIC_REGISTRATION` in `backend/.env`; it preserves the other settings and never prints credentials. Restarting the backend is required. A Git pull does not update your private environment file.
+
+An unset registration flag now enables customer signup. Explicit `false` (or another unrecognised value) keeps signup closed, including for an empty database. All public signups receive the `user` role, irrespective of supplied role fields or whether they are first. Existing staff roles remain unchanged. On a brand-new installation, a trusted database operator must provision the owner role after verifying the account; the public endpoint cannot do this.
+
+Customer accounts can sign in, view their own billing and choose a subscription. They cannot read dealership enquiries, leads, bookings, analytics, chat history or users. Staff roles retain their current permissions. This is not multi-tenant dealership workspace provisioning: purchasing a subscription does not itself grant global CRM access.
+
+Signup sends the optional phone field, uses the model's bcrypt password hashing, handles duplicate emails and returns a JWT. The old unsupported 14-day-trial claim has been removed.

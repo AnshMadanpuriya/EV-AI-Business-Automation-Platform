@@ -12,6 +12,7 @@
     "setup:rag": "python -m pip install -r rag-service/requirements.txt",
     "dev": "concurrently -n BACKEND,FRONTEND \"npm --prefix backend run dev\" \"npm --prefix frontend start\"",
     "dev:all": "concurrently -n BACKEND,FRONTEND,RAG \"npm --prefix backend run dev\" \"npm --prefix frontend start\" \"npm run rag:start\"",
+    "signup:enable": "node backend/scripts/enableSignup.js",
     "test": "npm --prefix backend test",
     "verify": "npm test && npm --prefix frontend run build"
   },

@@ -240,16 +240,17 @@ app.post('/api/auth/register', async (req, res) => {
     if (!safeName || !safeEmail || !password)
       return res.status(400).json({ success: false, message: 'Name, email and password required' });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeEmail)) return res.status(400).json({ success: false, message: 'Enter a valid email address.' });
-    if (String(password).length < 8 || String(password).length > 72) return res.status(400).json({ success: false, message: 'Password must be 8 to 72 characters.' });
+    if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) return res.status(400).json({ success: false, message: 'Password must have at least 8 characters and fit within 72 UTF-8 bytes.' });
+
+    // Self-service customers may sign up by default. An explicit operator setting still closes registration.
+    const registrationSetting = String(process.env.ALLOW_PUBLIC_REGISTRATION ?? 'true').trim().toLowerCase();
+    if (registrationSetting !== 'true') {
+      return res.status(403).json({ success: false, code: 'REGISTRATION_CLOSED', message: 'Account signup is currently unavailable. Please contact support.' });
+    }
 
     const exists = await User.findOne({ email: safeEmail });
     if (exists)
       return res.status(400).json({ success: false, message: 'Email already registered' });
-
-    const userCount = await User.countDocuments();
-    if (userCount > 0 && process.env.ALLOW_PUBLIC_REGISTRATION !== 'true') {
-      return res.status(403).json({ success: false, message: 'Public registration is closed. Ask the dealership owner for access.' });
-    }
 
     const user = await User.create({
       name: safeName,
@@ -257,13 +258,15 @@ app.post('/api/auth/register', async (req, res) => {
       password,
       phone: cleanText(phone, 30),
       company: cleanText(company, 120),
-      role: userCount === 0 ? 'admin' : 'viewer'
+      // Never grant staff/owner permissions from public input or a first-user race.
+      role: 'user'
     });
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '8h' });
 
     console.log(`✅ New user registered: ${safeEmail}`);
     res.status(201).json({ success: true, message: 'Account created!', token, user: user.toJSON() });
   } catch (err) {
+    if (err.code === 11000) return res.status(409).json({ success: false, message: 'Email already registered. Please sign in.' });
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -387,7 +390,7 @@ app.post('/api/enquiry', async (req, res) => {
   }
 });
 
-app.get('/api/enquiry', authMiddleware, async (req, res) => {
+app.get('/api/enquiry', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
     const filter = status ? { status } : {};
@@ -536,7 +539,7 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-app.get('/api/bookings', authMiddleware, async (req, res) => {
+app.get('/api/bookings', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const { page, limit } = safePagination(req.query);
     const filter = {};
@@ -686,7 +689,7 @@ async function qualifyAndSaveLead(req, res) {
 app.post('/api/leads', qualifyAndSaveLead);
 app.post('/api/leads/qualify', qualifyAndSaveLead);
 
-app.get('/api/leads', authMiddleware, async (req, res) => {
+app.get('/api/leads', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const { page, limit } = safePagination(req.query);
     const filter = { archivedAt: { $exists: false } };
@@ -719,7 +722,7 @@ app.get('/api/leads', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/leads/:id', authMiddleware, async (req, res) => {
+app.get('/api/leads/:id', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const lead = await Lead.findOne({ _id: req.params.id, archivedAt: { $exists: false } }).populate('assignedTo', 'name email');
     if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
@@ -898,7 +901,7 @@ async function buildOwnerStats() {
     };
 }
 
-app.get('/api/analytics/dashboard', authMiddleware, async (req, res) => {
+app.get('/api/analytics/dashboard', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     res.json({ success: true, stats: await buildOwnerStats() });
   } catch (err) {
@@ -906,7 +909,7 @@ app.get('/api/analytics/dashboard', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/analytics/owner', authMiddleware, async (req, res) => {
+app.get('/api/analytics/owner', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     res.json({ success: true, stats: await buildOwnerStats() });
   } catch (err) {
@@ -1010,7 +1013,7 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-app.get('/api/chat/sessions', authMiddleware, async (req, res) => {
+app.get('/api/chat/sessions', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const { page, limit } = safePagination(req.query);
     const filter = req.query.status ? { status: req.query.status } : {};
@@ -1024,7 +1027,7 @@ app.get('/api/chat/sessions', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/chat/session/:sessionId', authMiddleware, async (req, res) => {
+app.get('/api/chat/session/:sessionId', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
   try {
     const session = await ChatSession.findOne({ sessionId: cleanText(req.params.sessionId, 120) });
     if (!session) return res.status(404).json({ success: false, message: 'Conversation not found.' });

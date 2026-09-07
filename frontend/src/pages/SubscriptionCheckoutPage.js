@@ -1,3 +1,4 @@
+import { isStaff } from '../utils/accountAccess';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -214,8 +215,8 @@ export default function SubscriptionCheckoutPage() {
           <Link to="/" className="font-display font-bold text-lg text-white no-underline">
             ⚡ EV <span className="text-ev-cyan">AI</span>
           </Link>
-          <Link to="/dashboard" className="text-sm text-gray-400 hover:text-white">
-            Back to dashboard
+          <Link to={isStaff(user) ? "/dashboard" : "/"} className="text-sm text-gray-400 hover:text-white">
+            {isStaff(user) ? "Back to dashboard" : "Back to homepage"}
           </Link>
         </div>
 

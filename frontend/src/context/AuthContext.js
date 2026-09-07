@@ -46,11 +46,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // REGISTER → calls POST /api/auth/register → saves to MongoDB
-  const register = async (name, email, password, company) => {
+  const register = async (name, email, password, company, phone) => {
     const res  = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, company }),
+      body: JSON.stringify({ name, email, password, company, phone }),
     });
     const data = await res.json();
     if (!data.success) throw { response: { data } };
