@@ -1,5 +1,6 @@
 const catalog = require('../../shared/ev-catalog.json');
 const { resolveList, listAnswer, priceLine } = require('./evConversation');
+const fastRules = require('../../shared/ev-fast-answer.json');
 
 const normalize = (value) => String(value || '').normalize('NFKC').toLowerCase()
   .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
@@ -159,12 +160,34 @@ async function officialPage(brand) {
   });
 }
 
-async function retrieveKnowledge(question, history = []) {
+function canAnswerFromCatalog(question, matches) {
+  if (/^(hi|hello|hey|namaste)[!?.\s]*$/i.test(question.trim())) return true;
+  if (!matches.vehicles.length) return false;
+  let remaining = ` ${normalize(question)} `;
+  const names = [...matches.brands.flatMap(b => [b.make, ...b.aliases]),
+    ...matches.vehicles.flatMap(v => [v.model, v.model.replace(/\b(EV|Electric)\b/gi, '').trim()])];
+  if (matches.vehicles.some(v => v.model === 'iX1 LWB')) names.push('iX1');
+  if (matches.vehicles.some(v => v.make === 'Tesla' && v.model.startsWith('Model Y'))) names.push('Model Y');
+  for (const name of names.sort((a, b) => b.length - a.length)) remaining = remaining.split(` ${normalize(name)} `).join(' ');
+  const allowed = new Set(fastRules.words.split(' '));
+  if (!remaining.trim().split(/\s+/).filter(Boolean).every(word => allowed.has(word))) return false;
+  return Object.entries(fastRules.fields).every(([word, field]) => !contains(question, word)
+    || matches.vehicles.every(v => v[field]));
+}
+
+async function retrieveKnowledge(question, history = [], { referenceOnly = false } = {}) {
   const listing = resolveList(question, history, identifyVehicles);
   if (listing) return { ...listing, context: JSON.stringify({ policy: catalog.notice, ...listing }),
     brands: [...new Set(listing.vehicles.map(v => v.make.toLowerCase()))],
     sources: [...new Set(listing.vehicles.flatMap(v => [v.source_url, v.price_reference?.source_url]).filter(Boolean))], pages: [], mode: 'catalog', notice: '' };
   const matches = identifyVehicles(question, history);
+  if (referenceOnly || canAnswerFromCatalog(question, matches)) {
+    const vehicles = matches.vehicles;
+    return { context: JSON.stringify({ policy: catalog.notice, vehicles }), vehicles, pages: [],
+      brands: matches.brands.map(b => b.make.toLowerCase()), fast_answer: true, mode: 'catalog',
+      sources: [...new Set(vehicles.flatMap(v => [v.source_url, v.price_reference?.source_url]).filter(Boolean))],
+      notice: vehicles.length ? 'Reference catalog; confirm current prices and availability with the dealer.' : '' };
+  }
   const lookups = matches.brands.slice(0, 2).map(async brand => {
     const selected = matches.vehicles.filter(v => v.make === brand.make);
     const model = selected.length === 1 ? selected[0].model : '';
@@ -204,5 +227,5 @@ function localAnswer(question, knowledge) {
   return 'I do not have a confirmed source for that question yet. Share the EV brand/model and the detail you need; current prices also need your city. General AI answers require the configured AI service.';
 }
 
-module.exports = { catalog, normalize, canonicalMake, searchCatalog, identifyVehicles, searchVehicles,
+module.exports = { catalog, normalize, canonicalMake, searchCatalog, identifyVehicles, searchVehicles, canAnswerFromCatalog,
   retrieveKnowledge, localAnswer, htmlText, readLimited, clearCache: () => { cache.clear(); pending.clear(); } };

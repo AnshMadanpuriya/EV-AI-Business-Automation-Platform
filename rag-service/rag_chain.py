@@ -63,7 +63,7 @@ def _get_model() -> ChatMistralAI:
         api_key=api_key,
         temperature=0.2,
         max_retries=0,
-        timeout=18,
+        timeout=10,
     )
 
 
@@ -76,7 +76,7 @@ def _get_vector_store() -> Chroma:
     embeddings = MistralAIEmbeddings(
         model="mistral-embed",
         api_key=api_key,
-        timeout=6,
+        timeout=3,
         max_retries=0,
     )
 
@@ -130,7 +130,7 @@ def ask_ev_question(question: str, history: list[dict] | None = None) -> dict:
         raise ValueError(status["detail"])
 
     knowledge = retrieve_knowledge(question, history)
-    if knowledge.get("intent", {}).get("kind") == "list" or not os.getenv("MISTRAL_API_KEY"):
+    if knowledge.get("fast_answer") or knowledge.get("intent", {}).get("kind") == "list" or not os.getenv("MISTRAL_API_KEY"):
         return {"answer": reference_answer(question, knowledge), "mode": "catalog",
                 "sources": knowledge["sources"], "notice": knowledge["notice"]}
     context, vector_sources = _retrieve_context(question, knowledge.get("brands"))

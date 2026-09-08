@@ -60,6 +60,14 @@ class CatalogTests(unittest.TestCase):
         self.assertIn('advertised starting price', answer)
         self.assertIn('on-road price is not confirmed', answer)
 
+    def test_common_answers_skip_context_network(self):
+        with patch('ev_catalog.urlopen', side_effect=AssertionError('No network')) as network:
+            for question in ['hi', 'give data of ather', 'BMW iX1 range', 'Tesla Model Y range']:
+                self.assertTrue(retrieve_knowledge(question).get('fast_answer'), question)
+            network.assert_not_called()
+        self.assertFalse(reference_knowledge('Ather price today').get('fast_answer'))
+        self.assertFalse(reference_knowledge('why is Ather better than Ola').get('fast_answer'))
+
     def test_backend_failure_keeps_reference_answers(self):
         with patch('ev_catalog.urlopen', side_effect=TimeoutError()):
             result = retrieve_knowledge('Tesla Model Y')

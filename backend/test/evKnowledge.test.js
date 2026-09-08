@@ -141,3 +141,27 @@ test('a single-model specification question is not mistaken for a category list'
   assert.equal(knowledge.intent, undefined);
   assert.ok(knowledge.vehicles.every(v => v.model === 'Model 3'));
 });
+
+
+test('common catalog answers bypass live network even when providers are enabled', async t => {
+  settings(t, { EV_API_KEY: 'fixture-key', EV_LIVE_WEB_ENABLED: 'true' });
+  const network = t.mock.method(global, 'fetch', async () => { throw new Error('Network must be skipped'); });
+  for (const question of ['hi', 'give data of ather', 'BMW iX1 range', 'Tesla Model Y range']) {
+    const result = await retrieveKnowledge(question);
+    assert.equal(result.fast_answer, true, question);
+    assert.ok(localAnswer(question, result));
+  }
+  assert.equal(network.mock.callCount(), 0);
+});
+
+test('price and reasoning questions retain retrieval; emergency fallback skips network', async t => {
+  settings(t, { EV_API_KEY: 'fixture-key', EV_LIVE_WEB_ENABLED: 'true' });
+  const network = t.mock.method(global, 'fetch', async () => { throw new Error('Unavailable fixture'); });
+  const result = await retrieveKnowledge('Ather price today');
+  assert.notEqual(result.fast_answer, true);
+  assert.ok(network.mock.callCount() > 0);
+  network.mock.resetCalls();
+  const fallback = await retrieveKnowledge('Ather price today', [], { referenceOnly: true });
+  assert.equal(fallback.fast_answer, true);
+  assert.equal(network.mock.callCount(), 0);
+});

@@ -40,6 +40,29 @@ def identify(question, history=None):
     return brands, vehicles
 
 
+FAST_RULES = json.loads((Path(__file__).resolve().parent.parent / 'shared' / 'ev-fast-answer.json').read_text())
+
+
+def can_answer_from_catalog(question, brands, vehicles):
+    if re.fullmatch(r'(hi|hello|hey|namaste)[!?.\s]*', question.strip(), re.I):
+        return True
+    if not vehicles:
+        return False
+    remaining = f' {normalize(question)} '
+    names = [name for b in brands for name in [b['make'], *b['aliases']]]
+    names += [name for v in vehicles for name in [v['model'], re.sub(r'\b(EV|Electric)\b', '', v['model'], flags=re.I).strip()]]
+    if any(v['model'] == 'iX1 LWB' for v in vehicles):
+        names.append('iX1')
+    if any(v['make'] == 'Tesla' and v['model'].startswith('Model Y') for v in vehicles):
+        names.append('Model Y')
+    for name in sorted(names, key=len, reverse=True):
+        remaining = remaining.replace(f' {normalize(name)} ', ' ')
+    if not all(word in FAST_RULES['words'].split() for word in remaining.split()):
+        return False
+    return all(not contains(question, word) or all(v.get(field) for v in vehicles)
+               for word, field in FAST_RULES['fields'].items())
+
+
 def reference_knowledge(question, history=None):
     listing = resolve_list(question, history, identify, CATALOG)
     if listing is not None:
@@ -48,14 +71,14 @@ def reference_knowledge(question, history=None):
                 'sources': list(dict.fromkeys(url for v in listing['vehicles'] for url in [v['source_url'], v.get('price_reference', {}).get('source_url')] if url)), 'mode': 'catalog', 'notice': ''}
     brands, vehicles = identify(question, history)
     return {'context': json.dumps({'policy': CATALOG['notice'], 'vehicles': vehicles}, ensure_ascii=False),
-            'vehicles': vehicles, 'brands': [b['make'].lower() for b in brands],
+            'vehicles': vehicles, 'fast_answer': can_answer_from_catalog(question, brands, vehicles), 'brands': [b['make'].lower() for b in brands],
             'sources': list(dict.fromkeys(url for v in vehicles for url in [v['source_url'], v.get('price_reference', {}).get('source_url')] if url)), 'mode': 'catalog',
             'notice': 'Reference catalog; confirm the variant and current dealer quote.' if vehicles else ''}
 
 
 def retrieve_knowledge(question, history=None):
     reference = reference_knowledge(question, history)
-    if reference.get('intent', {}).get('kind') == 'list':
+    if reference.get('fast_answer') or reference.get('intent', {}).get('kind') == 'list':
         return reference
     # Fixed server configuration, never a URL supplied by a chat user.
     endpoint = os.getenv('EV_KNOWLEDGE_API_URL', 'http://127.0.0.1:5000/api/ev/context')

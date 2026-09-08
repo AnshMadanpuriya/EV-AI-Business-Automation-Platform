@@ -77,6 +77,7 @@ export default function EVChatbot() {
 
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const ragUnavailableUntil = useRef(0);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -119,10 +120,12 @@ export default function EVChatbot() {
     const ragHealth = await readHealth(`${RAG_API_URL}/health`);
 
     if (ragHealth && ragHealth.ready !== false) {
+      ragUnavailableUntil.current = 0;
       setService(ragHealth.mode === "catalog" ? "fallback" : ragHealth.mode === "mistral" ? "mistral" : "rag");
       return;
     }
 
+    ragUnavailableUntil.current = Date.now() + 30000;
     const nodeHealth = await readHealth(`${NODE_API_URL}/health`);
 
     if (nodeHealth) {
@@ -174,10 +177,13 @@ export default function EVChatbot() {
         role: message.role,
         content: message.text.slice(0, 1200),
       }));
-      const services = [
-        { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 40000 },
-        { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback", timeout: 28000 },
-      ];
+      const nodeService = { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback" };
+      const services = ragUnavailableUntil.current > Date.now()
+        ? [{ ...nodeService, timeout: 18000, catalogOnly: false }]
+        : [
+          { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 20000 },
+          { ...nodeService, timeout: 5000, catalogOnly: true },
+        ];
       let answer = "";
       let answerSources = [];
       let answerNotice = "";
@@ -193,12 +199,14 @@ export default function EVChatbot() {
           const response = await fetch(current.url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: question, history }),
+            body: JSON.stringify({ message: question, history, ...(current.catalogOnly ? { catalogOnly: true } : {}) }),
             signal: controller.signal,
           });
           const data = await response.json();
 
+          if (current.status === "rag" && !response.ok && response.status >= 500) ragUnavailableUntil.current = Date.now() + 30000;
           if (response.ok && data[current.answerKey]) {
+            if (current.status === "rag") ragUnavailableUntil.current = 0;
             answer = data[current.answerKey];
             answerSources = Array.isArray(data.sources) ? data.sources.filter(s => typeof s === "string").slice(0, 8) : [];
             answerNotice = typeof data.notice === "string" ? data.notice : "";
@@ -216,7 +224,8 @@ export default function EVChatbot() {
             break;
           }
         } catch {
-          // Try the next available service.
+          if (current.status === "rag") ragUnavailableUntil.current = Date.now() + 30000;
+          // Fall back to reference data instead of repeating a slow AI request.
         } finally {
           window.clearTimeout(timeout);
         }

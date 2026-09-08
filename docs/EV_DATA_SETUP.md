@@ -93,3 +93,9 @@ python -m unittest discover -s rag-service -p "test_ev_catalog.py"
 ```
 
 The browser formats numbered answers and collapses references, keeping more space for the actual answer. Long prior messages are bounded to the Python API's history limit.
+
+## Chat latency
+
+Common greetings and supported catalog detail/specification questions now return directly in both Node and Python, without live HTTP, embeddings or generation. This path is labeled reference data. Price/current-data and reasoning questions retain retrieval and AI processing. Missing specification fields also retain retrieval.
+
+The browser waits up to 20 seconds for RAG, then up to 5 seconds for a catalog-only Node fallback instead of another generative call. An unavailable RAG service is skipped for 30 seconds; the next request can use Node directly with an 18-second client budget. Manual health retry can restore RAG sooner. Generation request timeouts are 10 seconds and the embedding timeout is 3 seconds. These are timeout budgets, not a guarantee of response time or live-provider availability. Regression tests prove common answers do not make external requests; live Mistral latency has not been measured.

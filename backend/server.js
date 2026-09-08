@@ -181,7 +181,7 @@ ${knowledge.context}`,
         Authorization: `Bearer ${MISTRAL_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      timeout: 18000,
+      timeout: 10000,
     },
   );
 
@@ -960,11 +960,11 @@ app.post('/api/chat', async (req, res) => {
       );
     }
 
-    const knowledge = await retrieveKnowledge(question, sanitizeChatHistory(history));
+    const knowledge = await retrieveKnowledge(question, sanitizeChatHistory(history), { referenceOnly: req.body.catalogOnly === true });
     let response;
     let mode = 'catalog';
 
-    if (knowledge.intent?.kind === 'list') {
+    if (knowledge.fast_answer || knowledge.intent?.kind === 'list') {
       response = localAnswer(question, knowledge);
     } else try {
       response = await askMistral(question, history, knowledge);
