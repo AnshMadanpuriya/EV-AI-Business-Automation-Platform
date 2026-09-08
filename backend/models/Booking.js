@@ -8,6 +8,15 @@ const bookingSchema = new mongoose.Schema({
     default: () => `TEV-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   },
   name: { type: String, required: true },
+  source: { type: String, enum: ['website', 'elevenlabs'], default: 'website' },
+  sheetSync: {
+    status: { type: String, enum: ['queued', 'synced', 'failed'], default: 'queued' },
+    version: { type: Number, default: 1 },
+    attempts: { type: Number, default: 0 },
+    nextAttemptAt: Date,
+    syncedAt: Date,
+    error: { type: String, default: '' }
+  },
   email: { type: String, required: true },
   phone: { type: String, required: true },
   type: { type: String, enum: ['test-ride', 'demo', 'service', 'consultation'], default: 'test-ride' },
@@ -48,5 +57,15 @@ const bookingSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 bookingSchema.index({ date: 1, timeSlot: 1, location: 1, status: 1 });
+bookingSchema.index({ 'sheetSync.status': 1, 'sheetSync.nextAttemptAt': 1 });
+bookingSchema.pre('save', function(next) {
+  const fields = ['name', 'email', 'phone', 'vehicle', 'date', 'timeSlot', 'status', 'type', 'testDriveMode', 'address', 'city', 'pincode'];
+  if (!this.isNew && fields.some(field => this.isModified(field))) {
+    this.sheetSync.status = 'queued';
+    this.sheetSync.version = (this.sheetSync.version || 0) + 1;
+    this.sheetSync.nextAttemptAt = undefined;
+  }
+  next();
+});
 
 module.exports = mongoose.model('Booking', bookingSchema);

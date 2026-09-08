@@ -37,6 +37,9 @@ const {
 } = require('./services/razorpayPayments');
 const { cleanText, validateLead, validateBooking, safePagination } = require('./utils/validation');
 const { catalog, searchVehicles, retrieveKnowledge, localAnswer } = require('./services/evKnowledge');
+const { voiceBookingAuth } = require('./middleware/voiceBooking');
+const { startSheetWorker } = require('./services/bookingSheetWorker');
+const { configured: sheetConfigured } = require('./services/bookingSheet');
 
 // Load environment files from deterministic locations. This lets the Node
 // fallback use the same Mistral key as the Python RAG service even when the
@@ -77,6 +80,7 @@ app.use(express.json({
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 40, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/chat', rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false }));
 app.use(['/api/bookings', '/api/leads'], rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/voice/bookings', rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false }));
 app.use(
   ['/api/payments/subscriptions', '/api/payments/subscription/cancel'],
   rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false }),
@@ -454,15 +458,23 @@ async function recordBookingAutomation(booking, event) {
   return result;
 }
 
-app.post('/api/bookings', async (req, res) => {
+const bookingReceipt = booking => ({ bookingCode: booking.bookingCode, status: booking.status,
+  message: 'Booking request received. The dealership will confirm the slot.', sheetSyncStatus: booking.sheetSync?.status || 'queued' });
+
+async function createBookingRequest(req, res) {
   try {
     const { errors, value } = validateBooking(req.body);
     if (errors.length) return res.status(400).json({ success: false, message: errors[0], errors });
 
-    const idempotencyKey = cleanText(req.header('Idempotency-Key'), 120);
+    const idempotencyKey = req.bookingKey || (req.header('Idempotency-Key') ? `web:${cleanText(req.header('Idempotency-Key'), 120)}` : '');
     if (idempotencyKey) {
       const previous = await Booking.findOne({ idempotencyKey });
-      if (previous) return res.json({ success: true, duplicate: true, message: 'Booking request already received.', booking: previous });
+      if (previous) {
+        const same = ['name', 'email', 'phone', 'vehicle', 'timeSlot', 'type', 'testDriveMode', 'address', 'city', 'pincode'].every(key => String(previous[key] || '') === String(value[key] || ''))
+          && new Date(previous.date).getTime() === new Date(value.date).getTime();
+        if (!same) return res.status(409).json({ success: false, message: 'That request identifier already belongs to a different booking. Do not claim the changed details were saved.' });
+        return res.json({ success: true, duplicate: true, message: 'Booking request already received.', booking: bookingReceipt(previous) });
+      }
     }
 
     const duplicate = await Booking.findOne({
@@ -480,7 +492,7 @@ app.post('/api/bookings', async (req, res) => {
       email: value.email,
       phone: value.phone,
       city: value.city,
-      source: 'booking',
+      source: req.bookingSource === 'elevenlabs' ? 'voice' : 'booking',
       interest: value.type === 'test-ride' ? 'test-ride' : 'general',
       vehicle: value.vehicle,
       budget: cleanText(req.body.budget, 30),
@@ -518,6 +530,7 @@ app.post('/api/bookings', async (req, res) => {
 
     const booking = await Booking.create({
       ...value,
+      source: req.bookingSource || 'website',
       date: new Date(value.date),
       bookingCode: createBookingCode(),
       leadId: lead._id,
@@ -529,7 +542,7 @@ app.post('/api/bookings', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Test-drive request saved. The dealership will confirm the slot shortly.',
-      booking,
+      booking: bookingReceipt(booking),
       automation
     });
   } catch (err) {
@@ -537,6 +550,24 @@ app.post('/api/bookings', async (req, res) => {
     const duplicateKey = err.code === 11000;
     res.status(duplicateKey ? 409 : 500).json({ success: false, message: duplicateKey ? 'This booking request was already submitted.' : 'Server error while saving booking. Please try again.' });
   }
+}
+app.post('/api/bookings', createBookingRequest);
+app.post('/api/voice/bookings', voiceBookingAuth, createBookingRequest);
+
+app.get('/api/integrations/booking-sheet', authMiddleware, requireRole('admin'), async (req, res) => {
+  try {
+    const counts = await Booking.aggregate([{ $group: { _id: '$sheetSync.status', count: { $sum: 1 } } }]);
+    res.json({ success: true, configured: sheetConfigured(), counts });
+  } catch { res.status(503).json({ success: false, message: 'Could not load sheet sync status.' }); }
+});
+app.post('/api/bookings/:id/sheet-retry', authMiddleware, requireRole('admin'), async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: 'Invalid booking ID.' });
+  try {
+  const booking = await Booking.findByIdAndUpdate(req.params.id, { $set: { 'sheetSync.status': 'queued', 'sheetSync.error': '' },
+    $inc: { 'sheetSync.version': 1 }, $unset: { 'sheetSync.nextAttemptAt': '' } }, { new: true });
+  if (!booking) return res.status(404).json({ success: false, message: 'Booking not found.' });
+  res.json({ success: true, booking: bookingReceipt(booking) });
+  } catch { res.status(503).json({ success: false, message: 'Could not queue sheet retry.' }); }
 });
 
 app.get('/api/bookings', authMiddleware, requireRole('admin', 'agent', 'viewer'), async (req, res) => {
@@ -1505,6 +1536,8 @@ function startServer(port = PORT) {
     console.log(`   GET  /api/health              → Health check\n`);
   });
   connectDatabase();
+  const stopSheetWorker = startSheetWorker();
+  server.once('close', stopSheetWorker);
   return server;
 }
 

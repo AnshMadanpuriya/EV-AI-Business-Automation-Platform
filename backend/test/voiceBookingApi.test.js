@@ -1,0 +1,46 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const mongoose = require('mongoose');
+process.env.N8N_AUTOMATION_WEBHOOK_URL = '';
+process.env.N8N_BOOKING_WEBHOOK_URL = '';
+process.env.ELEVENLABS_BOOKING_SECRET = 'test-voice-server-secret-not-real-123456';
+const { app } = require('../server');
+const Booking = require('../models/Booking');
+const Lead = require('../models/Lead');
+
+test('website and authenticated voice requests enter the same durable sheet queue', async t => {
+  const old = Object.getOwnPropertyDescriptor(mongoose.connection, 'readyState');
+  Object.defineProperty(mongoose.connection, 'readyState', { configurable: true, value: 1 });
+  const saved = [];
+  t.mock.method(Lead, 'findOne', async () => null);
+  t.mock.method(Lead, 'findOneAndUpdate', async () => ({ _id: new mongoose.Types.ObjectId() }));
+  t.mock.method(Booking, 'findOne', async filter => filter.idempotencyKey ? saved.find(b => b.idempotencyKey === filter.idempotencyKey) : null);
+  t.mock.method(Booking, 'create', async values => {
+    const doc = new Booking(values);
+    doc.save = async () => doc;
+    saved.push(doc);
+    return doc;
+  });
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  t.after(async () => { await new Promise(resolve => server.close(resolve)); if (old) Object.defineProperty(mongoose.connection, 'readyState', old); else delete mongoose.connection.readyState; });
+  const body = { name: 'Example Customer', email: 'example@example.com', phone: '9876543210', date: new Date(Date.now() + 172800000).toISOString().slice(0, 10), timeSlot: '10:00', vehicle: 'Ather 450X', city: 'Indore', pincode: '452001', address: 'Example street 10', testDriveMode: 'home', consent: { privacyAccepted: true }, conversationId: 'conv_example_123' };
+  const post = (route, values = body, secret = process.env.ELEVENLABS_BOOKING_SECRET) => fetch(`http://127.0.0.1:${server.address().port}${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EV-Voice-Secret': secret }, body: JSON.stringify(values) });
+  assert.equal((await post('/api/voice/bookings', body, 'wrong')).status, 401);
+  assert.equal(saved.length, 0);
+  const web = await post('/api/bookings', { ...body, source: 'elevenlabs' });
+  assert.equal(web.status, 201);
+  assert.equal(saved[0].source, 'website');
+  const voice = await post('/api/voice/bookings');
+  const result = await voice.json();
+  assert.equal(voice.status, 201);
+  assert.equal(saved[1].source, 'elevenlabs');
+  assert.equal(saved[1].sheetSync.status, 'queued');
+  assert.equal(result.booking.status, 'pending');
+  assert.equal(result.booking.name, undefined);
+  const duplicate = await post('/api/voice/bookings');
+  assert.equal((await duplicate.json()).duplicate, true);
+  assert.equal(saved.length, 2);
+  assert.equal((await post('/api/voice/bookings', { ...body, vehicle: 'Other EV' })).status, 409);
+  assert.equal((await post('/api/voice/bookings', { ...body, consent: { privacyAccepted: false } })).status, 400);
+});
