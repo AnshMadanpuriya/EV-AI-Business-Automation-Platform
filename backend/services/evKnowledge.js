@@ -1,5 +1,6 @@
 const catalog = require('../../shared/ev-catalog.json');
 const { resolveList, listAnswer, priceLine } = require('./evConversation');
+const { adviceKnowledge } = require('./evAdvice');
 const fastRules = require('../../shared/ev-fast-answer.json');
 
 const normalize = (value) => String(value || '').normalize('NFKC').toLowerCase()
@@ -176,6 +177,8 @@ function canAnswerFromCatalog(question, matches) {
 }
 
 async function retrieveKnowledge(question, history = [], { referenceOnly = false } = {}) {
+  const advice = adviceKnowledge(question, history, identifyVehicles);
+  if (advice) return advice;
   const listing = resolveList(question, history, identifyVehicles);
   if (listing) return { ...listing, context: JSON.stringify({ policy: catalog.notice, ...listing }),
     brands: [...new Set(listing.vehicles.map(v => v.make.toLowerCase()))],
@@ -208,6 +211,7 @@ async function retrieveKnowledge(question, history = [], { referenceOnly = false
 }
 
 function localAnswer(question, knowledge) {
+  if (knowledge.advice_answer) return knowledge.advice_answer;
   if (knowledge.intent?.kind === 'list') return listAnswer(question, knowledge);
   const vehicles = knowledge.vehicles || [];
   const current = /price|cost|on road|latest|current|today|aaj|abhi|subsid/i.test(question);
@@ -221,10 +225,10 @@ function localAnswer(question, knowledge) {
     current ? 'Which city and variant do you want a quote for?' : 'Which model would you like to compare or explore?',
   ].join('\n');
   if (/^(hi|hello|hey|namaste)\b/i.test(question)) return 'Namaste! Ask about an EV brand or model, for example “give data of Ather”, “BMW iX1 range” or “Tesla Model Y charging”.';
-  if (/charg|battery/i.test(question)) return 'EVs use model-specific AC or DC charging. Battery size, charger power and state of charge affect charging time. Which vehicle are you considering?';
+
   if (/test.?drive|book/i.test(question)) return 'Select a vehicle in Explore Electric Vehicles and choose Book Test Drive. The team will confirm the requested appointment.';
   if (/list|brands|models|vehicles/i.test(question)) return `Catalog brands: ${catalog.brands.map(b => b.make).join(', ')}. Which brand should I show?`;
-  return 'I do not have a confirmed source for that question yet. Share the EV brand/model and the detail you need; current prices also need your city. General AI answers require the configured AI service.';
+  return 'I do not have a confirmed source for that question yet. Share the EV brand/model and the detail you need; current prices also need your city. I can help with buying steps, charging basics, or a comparison once I know what you need.';
 }
 
 module.exports = { catalog, normalize, canonicalMake, searchCatalog, identifyVehicles, searchVehicles, canAnswerFromCatalog,

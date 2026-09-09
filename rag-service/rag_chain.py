@@ -130,10 +130,11 @@ def ask_ev_question(question: str, history: list[dict] | None = None) -> dict:
         raise ValueError(status["detail"])
 
     knowledge = retrieve_knowledge(question, history)
-    if knowledge.get("fast_answer") or knowledge.get("intent", {}).get("kind") == "list" or not os.getenv("MISTRAL_API_KEY"):
+    use_recommendation_model = knowledge.get("intent", {}).get("kind") == "recommendation" and bool(os.getenv("MISTRAL_API_KEY"))
+    if (knowledge.get("fast_answer") and not use_recommendation_model) or knowledge.get("intent", {}).get("kind") == "list" or not os.getenv("MISTRAL_API_KEY"):
         return {"answer": reference_answer(question, knowledge), "mode": "catalog",
                 "sources": knowledge["sources"], "notice": knowledge["notice"]}
-    context, vector_sources = _retrieve_context(question, knowledge.get("brands"))
+    context, vector_sources = ("", []) if knowledge.get("advice_answer") else _retrieve_context(question, knowledge.get("brands"))
     sources = list(dict.fromkeys(knowledge["sources"] + vector_sources))
     mode = "live-retrieval" if knowledge["mode"] == "live-retrieval" else "rag" if context or knowledge.get("vehicles") else "mistral"
     context_text = knowledge["context"] + "\n\nREFERENCE VECTOR DOCUMENTS (may be historical):\n" + context
@@ -145,6 +146,7 @@ def ask_ev_question(question: str, history: list[dict] | None = None) -> dict:
                 "system",
                 """
 You are EVA, a helpful EV assistant for Indian customers and EV dealerships.
+Answer like a patient adviser: give the answer, explain the trade-off, then ask at most one useful follow-up. General buying/charging questions do not require a model before you help. Biggest battery is not automatically best reliability or value. Compare only supported facts. A new greeting or topic must not inherit the previous charging intent. Do not repeat the previous reply.
 
 Rules:
 1. Understand English, Hindi written in Latin script, and Hinglish. Reply in the user's language.

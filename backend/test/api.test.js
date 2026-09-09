@@ -93,3 +93,25 @@ test('chat serves the requested list and scoped follow-up through the public API
     }
   });
 });
+
+test('reported general questions return relevant answers through both API and context routes', async () => {
+  await withServer(async base => {
+    const history = [];
+    for (const [message, expected] of [
+      ['Fast charging ke baare mein batao', /DC charger/],
+      ['which evehicle has best battery among all two wheelers vehicle', /Ola/],
+      ['hy', /Hi!/],
+      ['how i purchase ev', /written on-road quote/],
+      ['which is best car ev in temrs of price and battery', /Tata/],
+    ]) {
+      const response = await fetch(`${base}/api/chat`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message, history}) });
+      const result = await response.json();
+      assert.equal(response.status, 200);
+      assert.match(result.response, expected);
+      assert.doesNotMatch(result.response, /General AI answers require|EVs use model-specific/);
+      history.push({role:'user',content:message});
+    }
+    const context = await fetch(`${base}/api/ev/context`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'hy'})});
+    assert.match((await context.json()).advice_answer, /Hi!/);
+  });
+});

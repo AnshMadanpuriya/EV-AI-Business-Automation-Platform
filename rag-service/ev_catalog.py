@@ -5,6 +5,7 @@ import re
 import unicodedata
 from pathlib import Path
 from urllib.request import Request, urlopen
+from ev_advice import advice_knowledge
 from ev_conversation import resolve_list, list_answer, price_line
 
 CATALOG = json.loads((Path(__file__).resolve().parent.parent / 'shared' / 'ev-catalog.json').read_text(encoding='utf-8'))
@@ -64,6 +65,9 @@ def can_answer_from_catalog(question, brands, vehicles):
 
 
 def reference_knowledge(question, history=None):
+    advice = advice_knowledge(question, history, identify, CATALOG)
+    if advice:
+        return advice
     listing = resolve_list(question, history, identify, CATALOG)
     if listing is not None:
         return {**listing, 'context': json.dumps({'policy': CATALOG['notice'], **listing}, ensure_ascii=False),
@@ -100,6 +104,8 @@ def retrieve_knowledge(question, history=None):
 
 
 def reference_answer(question, knowledge):
+    if knowledge.get('advice_answer'):
+        return knowledge['advice_answer']
     if knowledge.get('intent', {}).get('kind') == 'list':
         return list_answer(question, knowledge)
     vehicles = knowledge.get('vehicles', [])
@@ -121,8 +127,6 @@ def reference_answer(question, knowledge):
         return '\n'.join(lines)
     if re.match(r'^(hi|hello|hey|namaste)\b', question, re.I):
         return 'Namaste! Ask about an EV brand or model, for example “give data of Ather” or “BMW iX1 range”.'
-    if re.search(r'charg|battery', question, re.I):
-        return 'Charging time depends on battery size, charger power and state of charge. Which EV model are you considering?'
     if re.search(r'list|brands|models|vehicles', question, re.I):
         return 'Catalog brands: ' + ', '.join(b['make'] for b in CATALOG['brands']) + '. Which brand should I show?'
-    return 'I do not have a confirmed source for that question yet. Share the EV brand/model and the detail you need. General AI answers require the configured AI service.'
+    return 'I do not have a confirmed source for that question yet. Share the EV brand/model and the detail you need. I can help with buying steps, charging basics, or a comparison once I know what you need.'
