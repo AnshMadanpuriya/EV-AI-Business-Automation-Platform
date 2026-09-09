@@ -34,7 +34,7 @@ function identifyVehicles(question, history = []) {
   let vehicles = catalog.vehicles.filter(v => {
     const model = normalize(v.model);
     const short = model.replace(/\b(electric|ev)\b/g, '').trim();
-    return contains(text, model) || (short.length >= 3 && contains(text, short))
+    return (v.model_aliases || []).some(alias => contains(text, alias)) || contains(text, model) || (short.length >= 3 && contains(text, short))
       || (v.make === 'Tesla' && v.model.startsWith('Model Y') && contains(text, 'model y'))
       || (v.make === 'BMW' && v.model === 'iX1 LWB' && contains(text, 'ix1'));
   });
@@ -166,7 +166,7 @@ function canAnswerFromCatalog(question, matches) {
   if (!matches.vehicles.length) return false;
   let remaining = ` ${normalize(question)} `;
   const names = [...matches.brands.flatMap(b => [b.make, ...b.aliases]),
-    ...matches.vehicles.flatMap(v => [v.model, v.model.replace(/\b(EV|Electric)\b/gi, '').trim()])];
+    ...matches.vehicles.flatMap(v => [...(v.model_aliases || []), v.model, v.model.replace(/\b(EV|Electric)\b/gi, '').trim()])];
   if (matches.vehicles.some(v => v.model === 'iX1 LWB')) names.push('iX1');
   if (matches.vehicles.some(v => v.make === 'Tesla' && v.model.startsWith('Model Y'))) names.push('Model Y');
   for (const name of names.sort((a, b) => b.length - a.length)) remaining = remaining.split(` ${normalize(name)} `).join(' ');

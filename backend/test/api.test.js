@@ -82,7 +82,7 @@ test('chat serves the requested list and scoped follow-up through the public API
   await withServer(async base => {
     const first = 'Give me 20 list of both two vehicles and four vehicles';
     for (const [message, history, count] of [[first, [], 20],
-      ['which 2 vehicle are availbe from this companies ?', [{ role: 'user', content: first }], 8]]) {
+      ['which 2 vehicle are availbe from this companies ?', [{ role: 'user', content: first }], 10]]) {
       const response = await fetch(`${base}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history }) });
       const body = await response.json();
@@ -113,5 +113,26 @@ test('reported general questions return relevant answers through both API and co
     }
     const context = await fetch(`${base}/api/ev/context`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'hy'})});
     assert.match((await context.json()).advice_answer, /Hi!/);
+  });
+});
+
+test('public chat and RAG context preserve the reported scooter budget across short replies', async () => {
+  await withServer(async base => {
+    const history = [];
+    for (const message of ['best EV under 1 lakh for range and battery', 'scooters', 'suffest by your own']) {
+      const request = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, history }) };
+      const response = await fetch(`${base}/api/chat`, request);
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(body.mode, 'catalog');
+      if (history.length) {
+        assert.match(body.response, /TVS Orbiter/);
+        assert.doesNotMatch(body.response, /What is your total budget|do not have a confirmed source/);
+        const context = await (await fetch(`${base}/api/ev/context`, request)).json();
+        assert.equal(context.intent.budget_inr, 100000);
+        assert.equal(context.intent.category, 'two_wheeler');
+      }
+      history.push({role:'user',content:message}, {role:'assistant',content:body.response});
+    }
   });
 });

@@ -43,3 +43,55 @@ test('recommendation follow-ups inherit category but a new greeting does not', a
   assert.ok(knowledge.vehicles.every(v => v.vehicle_type === 'two_wheeler'));
   assert.equal((await retrieveKnowledge('hy', history)).intent.kind, 'greeting');
 });
+
+test('budget recommendation retains context through the reported clarification and misspelling', async t => {
+  t.mock.method(global, 'fetch', async () => { throw new Error('Unexpected network request'); });
+  const history = [];
+  for (const question of ['so which ev two vehicle is best in range near 100000 in terms of best battery and charging', 'scooters', 'suffest by your own']) {
+    const knowledge = await retrieveKnowledge(question, history);
+    const answer = localAnswer(question, knowledge);
+    assert.equal(knowledge.intent.kind, 'recommendation');
+    assert.equal(knowledge.intent.budget_inr, 100000);
+    assert.equal(knowledge.intent.category, 'two_wheeler');
+    assert.match(answer, /TVS Orbiter/);
+    assert.match(answer, /₹99,250/);
+    assert.match(answer, /158 km/);
+    assert.match(answer, /4 h 10 min/);
+    assert.match(answer, /on-road/);
+    assert.doesNotMatch(answer, /What is your total budget|scooter or a car|do not have a confirmed source/);
+    assert.ok(knowledge.vehicles.every(v => v.vehicle_type === 'two_wheeler'));
+    assert.ok(knowledge.vehicles.every(v => !v.price_reference || v.price_reference.amount_inr <= 100000));
+    history.push({role:'user',content:question}, {role:'assistant',content:answer});
+  }
+  assert.equal(global.fetch.mock.callCount(), 0);
+});
+
+test('ambiguous recommendations retain money; revised budgets, category changes and greetings reset correctly', async () => {
+  const history = [{role:'user',content:'best EV under 1 lakh for range'}];
+  assert.match(localAnswer('', await retrieveKnowledge(history[0].content)), /₹1,00,000.*scooter or a car/s);
+  const scooter = await retrieveKnowledge('scooters', history);
+  assert.equal(scooter.intent.budget_inr, 100000);
+  history.push({role:'user',content:'scooters'});
+  const cheaper = await retrieveKnowledge('my budget is 80k', history);
+  assert.equal(cheaper.intent.budget_inr, 80000);
+  assert.ok(cheaper.vehicles.every(v => !v.price_reference || v.price_reference.amount_inr <= 80000));
+  assert.match(localAnswer('', cheaper), /not confirmed options within your budget/);
+  const cars = await retrieveKnowledge('cars instead', history);
+  // This is a new topic rather than an invitation to apply the scooter price to a car.
+  const fresh = await retrieveKnowledge('recommend a car', [...history, {role:'user',content:'hy'}]);
+  assert.equal(fresh.intent.budget_inr, null);
+  assert.ok(fresh.vehicles.every(v => v.vehicle_type === 'four_wheeler'));
+  assert.equal(cars.intent.category, 'four_wheeler');
+  assert.equal(cars.intent.budget_inr, null);
+  assert.ok(cars.vehicles.length);
+  assert.ok(cars.vehicles.every(v => v.vehicle_type === 'four_wheeler'));
+  const reset = await retrieveKnowledge('suggest by your own', [...history, {role:'user',content:'which laptop is best?'}]);
+  assert.equal(reset.intent.category, null);
+  assert.equal(reset.intent.budget_inr, null);
+});
+
+test('budget parsing understands Indian amounts without treating range or model numbers as money', () => {
+  const { budgetFrom } = require('../services/evAdvice');
+  for (const text of ['near 100000', '₹1,00,000', '1 lakh', '1 lac', '100k', 'Rs. 100000', 'budget is 100000']) assert.equal(budgetFrom(text), 100000, text);
+  for (const text of ['range 100 km', 'Model 3', '3.1 kWh', '20 vehicles']) assert.equal(budgetFrom(text), null, text);
+});

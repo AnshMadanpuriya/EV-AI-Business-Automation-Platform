@@ -72,7 +72,7 @@ export default function LoginPage() {
             {mode === 'login' ? 'Welcome back' : 'Create account'}
           </h1>
           <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-            {mode === 'login' ? 'Sign in to your account' : 'Create your account to explore EVs and choose a plan'}
+            {mode === 'login' ? 'Sign in to open your dashboard' : 'Create your account and open your EV dashboard'}
           </p>
         </div>
 

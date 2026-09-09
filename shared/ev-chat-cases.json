@@ -2,8 +2,8 @@
   {
     "question": "Give me 20 list of both two vehicles and four vehicles",
     "count": 20,
-    "two": 8,
-    "four": 12
+    "two": 10,
+    "four": 10
   },
   {
     "question": "which 2 vehicle are availbe from this companies ?",
@@ -13,14 +13,14 @@
         "content": "Give me 20 list of both two vehicles and four vehicles"
       }
     ],
-    "count": 8,
-    "two": 8,
+    "count": 10,
+    "two": 10,
     "four": 0
   },
   {
     "question": "Show 20 two-wheelers",
-    "count": 8,
-    "two": 8,
+    "count": 10,
+    "two": 10,
     "four": 0,
     "shortfall": true
   },
@@ -38,8 +38,8 @@
         "content": "Ather and TVS models"
       }
     ],
-    "count": 5,
-    "two": 5,
+    "count": 6,
+    "two": 6,
     "four": 0,
     "makes": [
       "Ather",
@@ -72,8 +72,8 @@
   {
     "question": "give me 20 vehicles",
     "count": 20,
-    "two": 8,
-    "four": 12
+    "two": 10,
+    "four": 10
   },
   {
     "question": "list 2 vehicles",

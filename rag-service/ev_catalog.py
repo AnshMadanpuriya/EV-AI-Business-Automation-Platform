@@ -24,7 +24,7 @@ def identify(question, history=None):
     vehicles = []
     for v in CATALOG['vehicles']:
         short = re.sub(r'\b(electric|ev)\b', '', normalize(v['model'])).strip()
-        matched = contains(question, v['model']) or (len(short) >= 3 and contains(question, short))
+        matched = any(contains(question, alias) for alias in v.get('model_aliases', [])) or contains(question, v['model']) or (len(short) >= 3 and contains(question, short))
         matched |= v['make'] == 'Tesla' and v['model'].startswith('Model Y') and contains(question, 'model y')
         matched |= v['model'] == 'iX1 LWB' and contains(question, 'ix1')
         if matched and (not brands or any(b['make'] == v['make'] for b in brands)):
@@ -51,7 +51,7 @@ def can_answer_from_catalog(question, brands, vehicles):
         return False
     remaining = f' {normalize(question)} '
     names = [name for b in brands for name in [b['make'], *b['aliases']]]
-    names += [name for v in vehicles for name in [v['model'], re.sub(r'\b(EV|Electric)\b', '', v['model'], flags=re.I).strip()]]
+    names += [name for v in vehicles for name in [*v.get('model_aliases', []), v['model'], re.sub(r'\b(EV|Electric)\b', '', v['model'], flags=re.I).strip()]]
     if any(v['model'] == 'iX1 LWB' for v in vehicles):
         names.append('iX1')
     if any(v['make'] == 'Tesla' and v['model'].startswith('Model Y') for v in vehicles):

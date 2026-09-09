@@ -6,10 +6,9 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import SubscriptionCheckoutPage from './pages/SubscriptionCheckoutPage';
-import { isStaff } from './utils/accountAccess';
 // import ChatbotWidget from './components/Chatbot/ChatbotWidget';
 
-const ProtectedRoute = ({ children, staffOnly = false }) => {
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return (
@@ -19,7 +18,6 @@ const ProtectedRoute = ({ children, staffOnly = false }) => {
     </div>
   );
   const returnTo = `${location.pathname}${location.search}`;
-  if (user && staffOnly && !isStaff(user)) return <Navigate to="/subscribe/starter_monthly" replace />;
   return user
     ? children
     : <Navigate to={`/login?next=${encodeURIComponent(returnTo)}`} replace />;
@@ -30,7 +28,7 @@ const AppRoutes = () => (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard/*" element={<ProtectedRoute staffOnly><DashboardPage /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/subscribe/:planCode" element={<ProtectedRoute><SubscriptionCheckoutPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Menu, X, Bell, Search } from 'lucide-react';
+import { Menu, Bell, Search } from 'lucide-react';
 import Sidebar from '../components/Dashboard/Sidebar';
 import Overview from '../components/Dashboard/Overview';
 import Leads from '../components/Dashboard/Leads';
@@ -8,6 +8,8 @@ import Bookings from '../components/Dashboard/Bookings';
 import Conversations from '../components/Dashboard/Conversations';
 import Analytics from '../components/Dashboard/Analytics';
 import { useAuth } from '../context/AuthContext';
+import { isStaff } from '../utils/accountAccess';
+import CustomerDashboard from './CustomerDashboard';
 
 const PAGE_TITLES = {
   '/dashboard': 'Overview',
@@ -18,6 +20,11 @@ const PAGE_TITLES = {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  return isStaff(user) ? <StaffDashboard /> : <CustomerDashboard />;
+}
+
+function StaffDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
@@ -93,5 +100,4 @@ export default function DashboardPage() {
     </div>
   );
 }
-
 

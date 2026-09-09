@@ -114,7 +114,7 @@ test('requested counts, categories and conversational follow-ups work without AI
     assert.equal(knowledge.vehicles.filter(v => v.vehicle_type === 'four_wheeler').length, entry.four);
     assert.equal((answer.match(/^\d+\. /gm) || []).length, entry.count);
     if (entry.makes) assert.ok(knowledge.vehicles.every(v => entry.makes.includes(v.make)));
-    if (entry.shortfall) assert.match(answer, /requested 20; only 8/);
+    if (entry.shortfall) assert.match(answer, /requested 20; only 10/);
     if (entry.price) assert.ok(answer.includes(entry.price));
     assert.doesNotMatch(answer, /Which brand should I show|General AI answers require/);
     assert.equal(knowledge.notice, '');

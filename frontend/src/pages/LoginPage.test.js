@@ -6,13 +6,16 @@ import { AuthProvider } from '../context/AuthContext';
 import { accountDestination } from '../utils/accountAccess';
 
 const mockNavigate = jest.fn();
+let mockSearch = '';
+beforeEach(() => { mockSearch = ''; mockNavigate.mockClear(); });
 jest.mock('react-router-dom', () => ({
   Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
   useNavigate: () => mockNavigate,
-  useSearchParams: () => [new URLSearchParams('next=/subscribe/growth_monthly')],
+  useSearchParams: () => [new URLSearchParams(mockSearch)],
 }));
 
-test('signup submits the phone, saves the session and continues to the selected subscription', async () => {
+test.each(['', 'next=/subscribe/growth_monthly'])('signup saves the session and respects explicit checkout intent: %s', async search => {
+  mockSearch = search;
   global.IS_REACT_ACT_ENVIRONMENT = true;
   localStorage.clear();
   const originalFetch = global.fetch;
@@ -36,7 +39,7 @@ test('signup submits the phone, saves the session and continues to the selected 
     await act(async () => Simulate.submit(container.querySelector('form')));
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(localStorage.getItem('ev_token')).toBe('fixture-token');
-    expect(mockNavigate).toHaveBeenCalledWith('/subscribe/growth_monthly', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith(search ? '/subscribe/growth_monthly' : '/dashboard', { replace: true });
   } finally {
     await act(async () => root.unmount());
     container.remove();
@@ -45,8 +48,30 @@ test('signup submits the phone, saves the session and continues to the selected 
   }
 });
 
-test('customer redirects cannot enter staff dashboard or external targets', () => {
-  expect(accountDestination({ role: 'user' }, '/dashboard')).toBe('/subscribe/starter_monthly');
-  expect(accountDestination({ role: 'user' }, '//example.com')).toBe('/subscribe/starter_monthly');
+test('default destination is dashboard; external targets cannot redirect the customer', () => {
+  expect(accountDestination({ role: 'user' }, '/dashboard')).toBe('/dashboard');
+  expect(accountDestination({ role: 'user' }, '//example.com')).toBe('/dashboard');
   expect(accountDestination({ role: 'admin' })).toBe('/dashboard');
+});
+
+test('sign in from Get Started opens dashboard without selecting a plan', async () => {
+  global.IS_REACT_ACT_ENVIRONMENT = true;
+  localStorage.clear();
+  const originalFetch = global.fetch;
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  global.fetch = jest.fn(async url => {
+    expect(url).toMatch(/\/auth\/login$/);
+    return { json: async () => ({ success: true, token: 'fixture-token', user: { name: 'Customer', role: 'user' } }) };
+  });
+  try {
+    await act(async () => root.render(<AuthProvider><LoginPage /></AuthProvider>));
+    await act(async () => container.querySelectorAll('input').forEach((input, index) => Simulate.change(input, { target: { value: ['customer@example.com', 'test-password-123'][index] } })));
+    await act(async () => Simulate.submit(container.querySelector('form')));
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+  } finally {
+    await act(async () => root.unmount());
+    global.fetch = originalFetch;
+    localStorage.clear();
+  }
 });

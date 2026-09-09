@@ -1,8 +1,8 @@
 {
   "greeting": "^(hi|hy|hii+|hello|hey|namaste|namaskar|नमस्ते)[!?.\\s]*$",
-  "recommend": "\\b(best|better|recommend|suggest|highest|largest|longest|cheapest|affordable|sasta|sasti|behtar)\\b|sabse|सबसे|बेहतर",
+  "recommend": "\\b(best|better|recommend|suggest|sugest|suffest|recommendation|recommendations|highest|largest|longest|cheapest|affordable|sasta|sasti|behtar)\\b|sabse|सबसे|बेहतर",
   "two": "\\b(two|2)[ -]*wheelers?\\b|\\b(scooters?|bikes?)\\b|दोपहिया|स्कूटर",
-  "four": "\\b(four|4)[ -]*wheelers?\\b|\\bcars?\\b|कार",
+  "four": "\\b(four|4)[ -]*wheelers?\\b|\\bcars?\\b|(?:^|\\s)कार(?:\\s|$)",
   "purchase": "\\b(buy|purchase|purchasing|buying|kharid|kharidu|kharidna|kharide)\\b|खरीद",
   "charging": "charg|चार्ज",
   "battery": "battery|batteries|बैटरी",
@@ -32,5 +32,10 @@
       "en": "A good EV battery is about more than size. Compare **capacity (kWh), usable range, warranty, charging compatibility and service support**. A larger pack stores more energy, but capacity alone cannot establish battery life or reliability.\n\nAre you choosing a two-wheeler or a car?",
       "hi": "Achhi EV battery sirf badi battery nahi hoti. **Capacity (kWh), practical range, warranty, charging compatibility aur service support** compare karo. Badi capacity zyada energy store karti hai, lekin isse battery life ya reliability prove nahi hoti.\n\nTum two-wheeler ke liye pooch rahe ho ya car ke liye?"
     }
-  }
+  },
+  "budget": "(?:₹|\\brs\\.?\\s*|\\binr\\s*|\\b(?:budget(?:\\s+(?:is|of))?|near|around|under|below|upto|up to|within|maximum|max|about)\\s*)([\\d,]+(?:\\.\\d+)?)\\s*(lakh?s?|lacs?|k|thousand)?\\b|\\b(\\d+(?:\\.\\d+)?)\\s*(lakh?s?|lacs?|k|thousand)\\b",
+  "clarifier": "^(?:(?:only|just|please|for|i mean|actually|instead|now|my budget is)\\s+)*(?:scooters?|cars?|bikes?|two[ -]*wheelers?|four[ -]*wheelers?|\\d[\\d,. ]*(?:k|lakh?s?|lacs?|thousand)?)(?:\\s+(?:instead|please|only))?[!.? ]*$",
+  "preference": "\\b(range|battery|charging|charge|price|budget|cost|affordable|cheapest|sast\\w*)\\b",
+  "range": "\\b(range|longest|distance)\\b",
+  "recommend_followup": "^(?:(?:please|then|ok|so|you|just|which|what|one|is|the|by|your|own|yourself|me|it|would|do|choose|pick|suggest|sugest|suffest|recommend|best|better|option|recommendation)[\\s!?.,]*)+$"
 }

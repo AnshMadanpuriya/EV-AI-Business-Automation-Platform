@@ -1043,6 +1043,48 @@
       "electric_range": "165 km (IDC)",
       "verified_at": "2026-09-07",
       "vehicle_type": "two_wheeler"
+    },
+    {
+      "make": "TVS",
+      "model": "Orbiter 3.1 kWh",
+      "vehicle_type": "two_wheeler",
+      "market": "India",
+      "battery_capacity": "3.1 kWh",
+      "electric_range": "158 km (IDC claimed; real-world range varies)",
+      "charge_power": "650 W included charger",
+      "charging_time": "0–80%: 4 h 10 min with included 650 W charger; 2 h 38 min with optional 950 W charger",
+      "charging_0_80_minutes": 250,
+      "source": "reference-catalog",
+      "source_url": "https://www.tvsmotor.com/electric-scooters/tvs-orbiter",
+      "verified_at": "2026-09-09",
+      "data_note": "Variant-specific manufacturer specifications. Homepage advertises a starting price; model page illustrates higher location-dependent pricing. Obtain an exact variant/city quote. This is not a live quote.",
+      "price_reference": {
+        "amount_inr": 99250,
+        "label": "manufacturer homepage advertised starting price; exact variant/city and subsidy eligibility must be confirmed; on-road cost can exceed ₹1 lakh",
+        "checked_at": "2026-09-09",
+        "source_url": "https://www.tvsmotor.com/"
+      },
+      "model_aliases": [
+        "Orbiter",
+        "Orbiter V2"
+      ]
+    },
+    {
+      "make": "Bajaj",
+      "model": "Chetak C3001",
+      "vehicle_type": "two_wheeler",
+      "market": "India",
+      "battery_capacity": "3.0 kWh",
+      "electric_range": "127 km (manufacturer claimed; real-world range varies)",
+      "charging_time": "0–80%: 2 h 55 min (manufacturer-stated charging time)",
+      "charging_0_80_minutes": 175,
+      "source": "reference-catalog",
+      "source_url": "https://www.chetak.com/series-30/chetak-c3001",
+      "verified_at": "2026-09-09",
+      "data_note": "Manufacturer reference for C3001. Price must be obtained for the customer city and variant; not established as within any budget.",
+      "model_aliases": [
+        "C3001"
+      ]
     }
   ]
 }

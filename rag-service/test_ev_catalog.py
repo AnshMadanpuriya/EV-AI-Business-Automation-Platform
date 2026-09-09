@@ -50,7 +50,7 @@ class CatalogTests(unittest.TestCase):
                 if entry.get('price'):
                     self.assertIn(entry['price'], answer)
                 if entry.get('shortfall'):
-                    self.assertIn('requested 20; only 8', answer)
+                    self.assertIn('requested 20; only 10', answer)
                 self.assertEqual(knowledge['notice'], '')
 
     def test_dated_price_reference(self):
