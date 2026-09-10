@@ -1,0 +1,30 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const mongoose = require('mongoose');
+const Booking = require('../models/Booking');
+const { tick } = require('../services/bookingSheetWorker');
+const Lease = mongoose.models.BookingSheetLease;
+
+test('failed writes retain a retry queue; successful writes use the captured version', async t => {
+  process.env.BOOKING_SHEET_ID = 'test-sheet';
+  process.env.GOOGLE_SERVICE_ACCOUNT_FILE = '/unused/test.json';
+  const previous = mongoose.connection.readyState;
+  mongoose.connection.readyState = 1;
+  t.after(() => { mongoose.connection.readyState = previous; delete process.env.BOOKING_SHEET_ID; delete process.env.GOOGLE_SERVICE_ACCOUNT_FILE; });
+  let released = 0;
+  t.mock.method(Lease, 'findOneAndUpdate', async (_filter, update) => ({ owner: update.$set.owner }));
+  t.mock.method(Lease, 'updateOne', async () => { released++; });
+  const booking = { _id: 'example', sheetSync: { version: 7, attempts: 0 } };
+  t.mock.method(Booking, 'findOne', () => ({ sort: async () => booking }));
+  const writes = [];
+  t.mock.method(Booking, 'updateOne', async (filter, update) => { writes.push({ filter, update }); });
+  await tick({ write: async () => { throw Object.assign(new Error('secret must not persist'), { response: { status: 403 } }); } });
+  assert.equal(writes[0].update.$set['sheetSync.status'], 'failed');
+  assert.equal(writes[0].update.$set['sheetSync.error'], 'Google HTTP 403');
+  assert.ok(writes[0].update.$set['sheetSync.nextAttemptAt'] > new Date());
+  assert.equal(writes[0].filter['sheetSync.version'], 7);
+  await tick({ write: async () => { booking.sheetSync.version = 8; } });
+  assert.equal(writes[1].filter['sheetSync.version'], 7, 'an edit during sync must not be marked synced');
+  assert.equal(writes[1].update.$set['sheetSync.status'], 'synced');
+  assert.equal(released, 2);
+});

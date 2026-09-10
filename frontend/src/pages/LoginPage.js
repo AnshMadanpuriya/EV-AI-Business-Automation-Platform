@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { accountDestination } from '../utils/accountAccess';
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login');
@@ -12,9 +13,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedNext = searchParams.get('next');
-  const nextPath = requestedNext?.startsWith('/') && !requestedNext.startsWith('//')
-    ? requestedNext
-    : '/dashboard';
 
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -23,12 +21,10 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      if (mode === 'login') {
-        await login(form.email, form.password);
-      } else {
-        await register(form.name, form.email, form.password, form.company);
-      }
-      navigate(nextPath, { replace: true });
+      const result = mode === 'login'
+        ? await login(form.email, form.password)
+        : await register(form.name, form.email, form.password, form.company, form.phone);
+      navigate(accountDestination(result.user, requestedNext), { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Check if backend is running.');
     } finally {
@@ -76,7 +72,7 @@ export default function LoginPage() {
             {mode === 'login' ? 'Welcome back' : 'Create account'}
           </h1>
           <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-            {mode === 'login' ? 'Sign in to your dashboard' : 'Start your 14-day free trial'}
+            {mode === 'login' ? 'Sign in to open your dashboard' : 'Create your account and open your EV dashboard'}
           </p>
         </div>
 
@@ -191,7 +187,7 @@ export default function LoginPage() {
           marginTop: 16, textAlign: 'center',
           fontSize: 11, color: '#374151', fontFamily: 'monospace',
         }}>
-          🔒 MongoDB persistence · JWT-protected dashboard
+          🔒 Secure account sign-in
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 12 }}>

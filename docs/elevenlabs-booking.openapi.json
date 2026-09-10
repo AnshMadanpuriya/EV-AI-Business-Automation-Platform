@@ -1,0 +1,144 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "EV voice booking tool",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://YOUR_PUBLIC_BACKEND"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "VoiceSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-EV-Voice-Secret"
+      }
+    }
+  },
+  "paths": {
+    "/api/voice/bookings": {
+      "post": {
+        "operationId": "book_test_drive",
+        "summary": "Save a pending test-drive request after consent and read-back approval",
+        "security": [
+          {
+            "VoiceSecret": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "conversationId",
+                  "name",
+                  "email",
+                  "phone",
+                  "vehicle",
+                  "date",
+                  "timeSlot",
+                  "city",
+                  "pincode",
+                  "testDriveMode",
+                  "type",
+                  "consent"
+                ],
+                "properties": {
+                  "conversationId": {
+                    "type": "string",
+                    "description": "Bind to {{system__conversation_id}}, never model-generated."
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "vehicle": {
+                    "type": "string"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "timeSlot": {
+                    "type": "string",
+                    "description": "24-hour HH:mm in Asia/Kolkata"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "pincode": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Complete address required for home visits"
+                  },
+                  "testDriveMode": {
+                    "type": "string",
+                    "enum": [
+                      "showroom",
+                      "home"
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "test-ride"
+                    ]
+                  },
+                  "consent": {
+                    "type": "object",
+                    "required": [
+                      "privacyAccepted"
+                    ],
+                    "properties": {
+                      "privacyAccepted": {
+                        "type": "boolean",
+                        "description": "True only after explicit permission to store/share details"
+                      },
+                      "emailUpdates": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing identical request"
+          },
+          "201": {
+            "description": "Saved request: success, bookingCode, pending status and sheetSyncStatus"
+          },
+          "400": {
+            "description": "Invalid details or missing consent"
+          },
+          "401": {
+            "description": "Invalid tool secret"
+          },
+          "409": {
+            "description": "Conflicting or changed booking"
+          },
+          "503": {
+            "description": "Booking unavailable"
+          }
+        }
+      }
+    }
+  }
+}

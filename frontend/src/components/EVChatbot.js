@@ -6,6 +6,11 @@ const RAG_API_URL =
 const NODE_API_URL =
   process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 
+function sourceHost(source) {
+  try { const url = new URL(source); return url.protocol === 'https:' ? url.hostname : ''; }
+  catch { return ''; }
+}
+
 const firstMessage = {
   id: 1,
   role: "assistant",
@@ -14,9 +19,11 @@ const firstMessage = {
 
 function FormattedMessage({ text }) {
   const formatBold = (line) =>
-    line.split(/(\*\*.*?\*\*)/g).map((part, index) =>
+    line.split(/(\*\*.*?\*\*|\[[^\]]+\]\(https:\/\/[^\s)]+\))/g).map((part, index) =>
       part.startsWith("**") && part.endsWith("**") ? (
         <strong key={index}>{part.slice(2, -2)}</strong>
+      ) : /^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/.test(part) ? (
+        <a key={index} href={part.match(/\]\((.*)\)$/)[1]} target="_blank" rel="noopener noreferrer" style={{ color: "#62d9ff" }}>{part.match(/^\[([^\]]+)/)[1]}</a>
       ) : (
         <React.Fragment key={index}>{part}</React.Fragment>
       )
@@ -41,13 +48,14 @@ function FormattedMessage({ text }) {
           );
         }
 
+        const numbered = value.match(/^(\d+)\.\s+(.*)$/);
         const bullet = value.match(/^[-*]\s+(.*)$/);
 
-        if (bullet) {
+        if (bullet || numbered) {
           return (
             <div className="ev-message-bullet" key={index}>
-              <span>•</span>
-              <span>{formatBold(bullet[1])}</span>
+              <span>{numbered ? `${numbered[1]}.` : '•'}</span>
+              <span>{formatBold(numbered ? numbered[2] : bullet[1])}</span>
             </div>
           );
         }
@@ -71,6 +79,9 @@ export default function EVChatbot() {
 
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const ragUnavailableUntil = useRef(0);
+  const catalogContextRef = useRef(null);
+  const chatGeneration = useRef(0);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -113,10 +124,12 @@ export default function EVChatbot() {
     const ragHealth = await readHealth(`${RAG_API_URL}/health`);
 
     if (ragHealth && ragHealth.ready !== false) {
-      setService(ragHealth.mode === "mistral" ? "mistral" : "rag");
+      ragUnavailableUntil.current = 0;
+      setService(ragHealth.mode === "catalog" ? "fallback" : ragHealth.mode === "mistral" ? "mistral" : "rag");
       return;
     }
 
+    ragUnavailableUntil.current = Date.now() + 30000;
     const nodeHealth = await readHealth(`${NODE_API_URL}/health`);
 
     if (nodeHealth) {
@@ -139,6 +152,9 @@ export default function EVChatbot() {
 
   const clearChat = () => {
     setMessages([firstMessage]);
+    catalogContextRef.current = null;
+    chatGeneration.current += 1;
+    setLoading(false);
     setInput("");
   };
 
@@ -153,6 +169,7 @@ export default function EVChatbot() {
 
     if (!question || loading) return;
 
+    const generation = chatGeneration.current;
     const userMessage = {
       id: Date.now(),
       role: "user",
@@ -166,15 +183,21 @@ export default function EVChatbot() {
     try {
       const history = messages.slice(-8).map((message) => ({
         role: message.role,
-        content: message.text,
+        content: message.text.slice(0, 1200),
       }));
-      const services = [
-        { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 30000 },
-        { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback", timeout: 7000 },
-      ];
+      const nodeService = { url: `${NODE_API_URL}/chat`, answerKey: "response", status: "fallback" };
+      const services = ragUnavailableUntil.current > Date.now()
+        ? [{ ...nodeService, timeout: 18000, catalogOnly: false }]
+        : [
+          { url: `${RAG_API_URL}/chat`, answerKey: "answer", status: "rag", timeout: 20000 },
+          { ...nodeService, timeout: 5000, catalogOnly: true },
+        ];
       let answer = "";
+      let answerSources = [];
+      let answerNotice = "";
 
       for (const current of services) {
+        if (generation !== chatGeneration.current) return;
         const controller = new AbortController();
         const timeout = window.setTimeout(
           () => controller.abort(),
@@ -185,14 +208,24 @@ export default function EVChatbot() {
           const response = await fetch(current.url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: question, history }),
+            body: JSON.stringify({ message: question, history, catalog_context: catalogContextRef.current, ...(current.catalogOnly ? { catalogOnly: true } : {}) }),
             signal: controller.signal,
           });
           const data = await response.json();
+          if (generation !== chatGeneration.current) return;
 
+          if (current.status === "rag" && !response.ok && response.status >= 500) ragUnavailableUntil.current = Date.now() + 30000;
           if (response.ok && data[current.answerKey]) {
+            if (current.status === "rag") ragUnavailableUntil.current = 0;
             answer = data[current.answerKey];
-            if (data.mode === "mistral") {
+            catalogContextRef.current = data.catalog_context || null;
+            answerSources = Array.isArray(data.sources) ? data.sources.filter(s => typeof s === "string").slice(0, 8) : [];
+            answerNotice = typeof data.notice === "string" ? data.notice : "";
+            if (data.mode === "catalog" || data.mode === "local") {
+              setService("fallback");
+            } else if (data.mode === "live-retrieval") {
+              setService("live");
+            } else if (data.mode === "mistral") {
               setService("mistral");
             } else if (current.status === "rag") {
               setService("rag");
@@ -202,7 +235,8 @@ export default function EVChatbot() {
             break;
           }
         } catch {
-          // Try the next available service.
+          if (current.status === "rag") ragUnavailableUntil.current = Date.now() + 30000;
+          // Fall back to reference data instead of repeating a slow AI request.
         } finally {
           window.clearTimeout(timeout);
         }
@@ -216,9 +250,12 @@ export default function EVChatbot() {
           id: Date.now() + 1,
           role: "assistant",
           text: answer,
+          sources: answerSources,
+          notice: answerNotice,
         },
       ]);
     } catch (error) {
+      if (generation !== chatGeneration.current) return;
       setMessages((previous) => [
         ...previous,
         {
@@ -230,7 +267,7 @@ export default function EVChatbot() {
       ]);
       setService("offline");
     } finally {
-      setLoading(false);
+      if (generation === chatGeneration.current) setLoading(false);
     }
   };
 
@@ -266,6 +303,7 @@ export default function EVChatbot() {
                   {service === "rag" && "RAG Assistant Online"}
                   {service === "mistral" && "Mistral Assistant Online"}
                   {service === "fallback" && "Local EV Assistant Online"}
+                  {service === "live" && "EV sources retrieved"}
                   {service === "checking" && "Checking AI service..."}
                   {service === "offline" && "AI service offline"}
                 </div>
@@ -317,6 +355,19 @@ export default function EVChatbot() {
 
                 <div className="ev-message-bubble">
                   <FormattedMessage text={message.text} />
+                  {message.sources?.length > 0 && (
+                    <details aria-label="Answer sources" style={{ marginTop: 10, fontSize: 12, overflowWrap: 'anywhere' }}>
+                      <summary style={{ cursor: 'pointer' }}>Sources / references ({message.sources.length})</summary>
+                      {message.sources.map((source, index) => (
+                        <div key={`${source}-${index}`}>
+                          {sourceHost(source)
+                            ? <a href={source} target="_blank" rel="noopener noreferrer" style={{ color: '#62d9ff' }}>Source {index + 1}: {sourceHost(source)}</a>
+                            : <span>{source}</span>}
+                        </div>
+                      ))}
+                    </details>
+                  )}
+                  {message.notice && <div style={{ marginTop: 8, fontSize: 11, color: '#a5b4c7' }}>{message.notice}</div>}
                 </div>
               </div>
             ))}
@@ -390,6 +441,8 @@ export default function EVChatbot() {
           <div className="ev-chat-powered">
             {service === "fallback"
               ? "Grounded local EV knowledge"
+              : service === "live"
+                ? "AI + retrieved EV sources"
               : service === "mistral"
                 ? "Powered by Mistral AI"
                 : "Powered by Mistral AI + RAG"}

@@ -1,0 +1,95 @@
+[
+  {
+    "question": "Give me 20 list of both two vehicles and four vehicles",
+    "count": 20,
+    "two": 10,
+    "four": 10
+  },
+  {
+    "question": "which 2 vehicle are availbe from this companies ?",
+    "history": [
+      {
+        "role": "user",
+        "content": "Give me 20 list of both two vehicles and four vehicles"
+      }
+    ],
+    "count": 20,
+    "two": 20,
+    "four": 0
+  },
+  {
+    "question": "Show 20 two-wheelers",
+    "count": 20,
+    "two": 20,
+    "four": 0
+  },
+  {
+    "question": "list 5 cars",
+    "count": 5,
+    "two": 0,
+    "four": 5
+  },
+  {
+    "question": "which two-wheelers are available from these companies?",
+    "history": [
+      {
+        "role": "user",
+        "content": "Ather and TVS models"
+      }
+    ],
+    "count": 8,
+    "two": 8,
+    "four": 0,
+    "makes": [
+      "Ather",
+      "TVS"
+    ]
+  },
+  {
+    "question": "show BMW two-wheelers",
+    "count": 2,
+    "two": 2,
+    "four": 0
+  },
+  {
+    "question": "give data of ather",
+    "detail": true
+  },
+  {
+    "question": "what are their prices?",
+    "history": [
+      {
+        "role": "user",
+        "content": "list Ather models"
+      }
+    ],
+    "count": 4,
+    "two": 4,
+    "four": 0,
+    "price": "₹1,48,998"
+  },
+  {
+    "question": "give me 20 vehicles",
+    "count": 20,
+    "two": 10,
+    "four": 10
+  },
+  {
+    "question": "list 2 vehicles",
+    "count": 2,
+    "two": 1,
+    "four": 1
+  },
+  {
+    "question": "give or suggesy more ev names",
+    "count": 20,
+    "two": 10,
+    "four": 10
+  },
+  {
+    "question": "show 100 two wheelers",
+    "count": 53,
+    "two": 53,
+    "four": 0
+  }
+]

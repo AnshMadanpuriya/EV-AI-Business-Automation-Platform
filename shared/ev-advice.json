@@ -1,0 +1,41 @@
+{
+  "greeting": "^(hi|hy|hii+|hello|hey|namaste|namaskar|नमस्ते)[!?.\\s]*$",
+  "recommend": "\\b(best|better|recommend|suggest|sugest|suffest|recommendation|recommendations|highest|largest|longest|cheapest|affordable|sasta|sasti|behtar)\\b|sabse|सबसे|बेहतर",
+  "two": "\\b(two|2)[ -]*wheelers?\\b|\\b(scooters?|bikes?)\\b|दोपहिया|स्कूटर",
+  "four": "\\b(four|4)[ -]*wheelers?\\b|\\bcars?\\b|(?:^|\\s)कार(?:\\s|$)",
+  "purchase": "\\b(buy|purchase|purchasing|buying|kharid|kharidu|kharidna|kharide)\\b|खरीद",
+  "charging": "charg|चार्ज",
+  "battery": "battery|batteries|बैटरी",
+  "hinglish": "\\b(ke|ki|ka|hai|hain|batao|baare|kese|kaise|mujhe|chahiye|sabse|kharidna|mein|aur)\\b|[\\u0900-\\u097f]",
+  "sources": {
+    "charging": [
+      "https://afdc.energy.gov/fuels/electricity-stations"
+    ],
+    "battery": [
+      "https://afdc.energy.gov/fuels/electricity-benefits"
+    ]
+  },
+  "answers": {
+    "greeting": {
+      "en": "Hi! I can help you compare EVs, understand charging, or plan a purchase. What would you like to know?",
+      "hi": "Hi! EV choose karna hai, charging samajhni hai ya test drive leni hai? Batao, kis cheez mein help karun?"
+    },
+    "purchase": {
+      "en": "Here is a practical way to buy an EV:\n\n1. Set your total budget, including insurance and charger installation.\n2. Check daily travel and whether you can charge at home or work.\n3. Shortlist models, take a test drive, and compare battery warranty and nearby service support.\n4. Request a written on-road quote for the exact variant; compare the total loan cost if financing.\n5. Confirm delivery timing and booking/refund terms before paying the authorised seller.\n\nOn this website, select an EV and use **Book Test Drive** to submit a request. The dealership confirms the slot. Are you looking for a scooter or a car?",
+      "hi": "EV kharidne ke liye ye steps follow karo:\n\n1. Insurance aur charger installation mila kar total budget tay karo.\n2. Daily kitna chalana hai aur ghar/office par charging possible hai, check karo.\n3. Models shortlist karke test drive lo; battery warranty aur nearby service centre compare karo.\n4. Exact variant ka written on-road quote lo. Loan loge to total interest bhi compare karo.\n5. Authorised seller ko pay karne se pehle delivery aur cancellation/refund terms samjho.\n\nIs website par EV select karke **Book Test Drive** se request bhej sakte ho. Final slot dealership confirm karegi. Tum scooter lena chahte ho ya car?"
+    },
+    "charging": {
+      "en": "Fast charging adds energy faster when the vehicle supports the charger’s power and connector. For compatible EV cars, DC charging supplies the battery directly; AC charging uses the vehicle’s onboard charger.\n\n- A higher-rated charger cannot exceed the vehicle’s charging limit.\n- Battery level and temperature affect speed; charging usually slows as the battery fills.\n- Check the exact model’s supported charger and stated charging window before comparing times.\n\nWhich model are you considering?",
+      "hi": "Fast charging se battery jaldi charge hoti hai, agar vehicle us charger ki power aur connector support kare. Compatible EV cars mein DC charger battery ko seedha power deta hai; AC charging onboard charger se hoti hai.\n\n- Zyada powerful charger lagane se vehicle ki charging limit nahi badhti.\n- Battery level aur temperature speed ko affect karte hain; battery bharne par charging dheemi ho sakti hai.\n- Time compare karte waqt exact model aur charging percentage window check karo.\n\nTum kis model ke liye pooch rahe ho?"
+    },
+    "battery": {
+      "en": "A good EV battery is about more than size. Compare **capacity (kWh), usable range, warranty, charging compatibility and service support**. A larger pack stores more energy, but capacity alone cannot establish battery life or reliability.\n\nAre you choosing a two-wheeler or a car?",
+      "hi": "Achhi EV battery sirf badi battery nahi hoti. **Capacity (kWh), practical range, warranty, charging compatibility aur service support** compare karo. Badi capacity zyada energy store karti hai, lekin isse battery life ya reliability prove nahi hoti.\n\nTum two-wheeler ke liye pooch rahe ho ya car ke liye?"
+    }
+  },
+  "budget": "(?:₹|\\brs\\.?\\s*|\\binr\\s*|\\b(?:budget(?:\\s+(?:is|of))?|near|around|under|below|upto|up to|within|maximum|max|about)\\s*)([\\d,]+(?:\\.\\d+)?)\\s*(lakh?s?|lacs?|k|thousand)?\\b|\\b(\\d+(?:\\.\\d+)?)\\s*(lakh?s?|lacs?|k|thousand)\\b",
+  "clarifier": "^(?:(?:only|just|please|for|i mean|actually|instead|now|my budget is)\\s+)*(?:scooters?|cars?|bikes?|two[ -]*wheelers?|four[ -]*wheelers?|\\d[\\d,. ]*(?:k|lakh?s?|lacs?|thousand)?)(?:\\s+(?:instead|please|only))?[!.? ]*$",
+  "preference": "\\b(range|battery|charging|charge|price|budget|cost|affordable|cheapest|sast\\w*)\\b",
+  "range": "\\b(range|longest|distance)\\b",
+  "recommend_followup": "^(?:(?:please|then|ok|so|you|just|which|what|one|is|the|by|your|own|yourself|me|it|would|do|choose|pick|suggest|sugest|suffest|recommend|best|better|option|recommendation)[\\s!?.,]*)+$"
+}

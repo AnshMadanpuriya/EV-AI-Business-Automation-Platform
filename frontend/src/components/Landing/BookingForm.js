@@ -136,7 +136,7 @@ export default function BookingForm({ initialVehicle = '', onClose }) {
               <div style={{ fontSize: 58, marginBottom: 14 }}>✅</div>
               <h3 style={{ color: 'white', fontSize: 22, marginBottom: 8 }}>Test-drive request received</h3>
               <p style={{ color: '#9CA3AF', fontSize: 13, lineHeight: 1.65, maxWidth: 460, margin: '0 auto 20px' }}>
-                We saved your request and sent it to the dealership workflow. You will receive an acknowledgement email, followed by a separate confirmation after the team verifies the slot.
+                We saved your request. The dealership will confirm your appointment after checking the vehicle and time slot.
               </p>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', marginBottom: 22,

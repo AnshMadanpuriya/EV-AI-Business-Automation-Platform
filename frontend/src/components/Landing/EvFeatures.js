@@ -94,7 +94,7 @@ function EVCard({ vehicle, onBookTestDrive }) {
         ].map(({ icon, label, val }) => (
           <div key={label} style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '8px 6px', textAlign: 'center' }}>
             <div style={{ fontSize: 14 }}>{icon}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginTop: 2 }}>{val || 'N/A'}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginTop: 2 }}>{val || 'Not confirmed'}</div>
             <div style={{ fontSize: 9, color: '#6B7280' }}>{label}</div>
           </div>
         ))}
@@ -104,6 +104,13 @@ function EVCard({ vehicle, onBookTestDrive }) {
           🔋 Battery: {vehicle.battery_capacity} · {vehicle.battery_type || 'Li-ion'}
         </div>
       )}
+      <div style={{ marginTop: 12, fontSize: 11, lineHeight: 1.5, color: '#AAB8CC' }}>
+        <div>{vehicle.source === 'api-ninjas' ? 'Provider data' : 'Reference catalog'}{vehicle.market ? ` · ${vehicle.market}` : ''}</div>
+        {vehicle.retrieved_at && <div>Retrieved: {new Date(vehicle.retrieved_at).toLocaleString()}</div>}
+        {vehicle.verified_at && <div>Reference checked: {vehicle.verified_at}</div>}
+        {vehicle.data_note && <p style={{ margin: '6px 0' }}>{vehicle.data_note}</p>}
+        {/^https:\/\//i.test(vehicle.source_url || '') && <a href={vehicle.source_url} target="_blank" rel="noopener noreferrer" style={{ color: '#62D9FF' }}>View source</a>}
+      </div>
       <motion.button
         type="button"
         whileHover={{ scale: 1.02 }}
@@ -187,11 +194,18 @@ function EVExplorer() {
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
   const [bookingVehicle, setBookingVehicle] = useState('');
+  const [notice, setNotice] = useState('');
+  const requestId = useRef(0);
 
   const fetchEVs = async (make, model = '') => {
+    make = make.trim();
+    model = model.trim();
     if (!make && !model) return;
+    const currentRequest = ++requestId.current;
     setLoading(true);
     setError('');
+    setNotice('');
+    setResults([]);
     setSearched(true);
     try {
       const params = new URLSearchParams();
@@ -199,6 +213,8 @@ function EVExplorer() {
       if (model) params.append('model', model);
       const res = await fetch(`${API_URL}/ev/search?${params}`);
       const data = await res.json();
+      if (currentRequest !== requestId.current) return;
+      setNotice(data.notice || '');
       if (data.success && data.vehicles?.length > 0) {
         setResults(data.vehicles);
       } else {
@@ -206,9 +222,10 @@ function EVExplorer() {
         setError(data.message || `No vehicles found for "${make}${model ? ' ' + model : ''}".`);
       }
     } catch {
+      if (currentRequest !== requestId.current) return;
       setError('Backend se connect nahi hua. Check karo port 5000 chal raha hai.');
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   };
 
@@ -343,6 +360,7 @@ function EVExplorer() {
           </div>
         </motion.form>
 
+        {notice && <p role="status" style={{ fontSize: 13, color: '#AAB8CC', marginBottom: 16 }}>{notice}</p>}
         {error && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{
             background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',

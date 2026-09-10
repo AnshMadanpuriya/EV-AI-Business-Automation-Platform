@@ -11,3 +11,5 @@ build/
 dist/
 downloads/
 *.log
+.credentials/
+*service-account*.json
