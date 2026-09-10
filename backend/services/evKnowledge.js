@@ -1,9 +1,9 @@
 const catalog = require('../../shared/ev-catalog.json');
-const { resolveList, listAnswer, priceLine } = require('./evConversation');
+const { resolveList, listAnswer, priceLine, contextFor } = require('./evConversation');
 const { adviceKnowledge } = require('./evAdvice');
 const fastRules = require('../../shared/ev-fast-answer.json');
 
-const normalize = (value) => String(value || '').normalize('NFKC').toLowerCase()
+const normalize = (value) => String(value || '').normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
   .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
 const contains = (text, phrase) => (` ${normalize(text)} `).includes(` ${normalize(phrase)} `);
 const cache = new Map();
@@ -25,20 +25,22 @@ function searchCatalog(make = '', model = '') {
   const query = normalize(model);
   return catalog.vehicles.filter(v => (!m || normalize(v.make) === m)
     && (!query || contains(`${v.make} ${v.model}`, query)
-      || normalize(v.model).includes(query)));
+      || normalize(v.model).includes(query) || (v.model_aliases || []).some(a => contains(a, query))));
 }
 
 function identifyVehicles(question, history = []) {
   const text = normalize(question);
   let brands = catalog.brands.filter(b => [b.make, ...b.aliases].some(a => contains(text, a)));
-  let vehicles = catalog.vehicles.filter(v => {
-    const model = normalize(v.model);
-    const short = model.replace(/\b(electric|ev)\b/g, '').trim();
-    return (v.model_aliases || []).some(alias => contains(text, alias)) || contains(text, model) || (short.length >= 3 && contains(text, short))
-      || (v.make === 'Tesla' && v.model.startsWith('Model Y') && contains(text, 'model y'))
-      || (v.make === 'BMW' && v.model === 'iX1 LWB' && contains(text, 'ix1'));
-  });
-  if (brands.length) vehicles = vehicles.filter(v => brands.some(b => b.make === v.make));
+  // Match complete tokens, including short model names only when their brand is explicit.
+  // Prefer a longer variant name over its contained family name (iQube ST vs iQube).
+  const candidates = catalog.vehicles.map(v => {
+    const aliases = [v.model, ...(v.model_aliases || []), v.model.replace(/\b(electric|ev)\b/gi, '').trim()];
+    const spans = aliases.map(normalize).filter(a => a && contains(text, a)
+      && ((a.length >= 3 && !['one','air','eva','crossover'].includes(a)) || brands.some(b => b.make === v.make)));
+    return { v, spans };
+  }).filter(c => c.spans.length && (!brands.length || brands.some(b => b.make === c.v.make)));
+  let vehicles = candidates.filter(c => !candidates.some(other => other.v.make === c.v.make && other !== c
+    && c.spans.every(span => other.spans.some(long => long !== span && contains(long, span))))).map(c => c.v);
   const followupWords = new Set('and aur what about is the it its this that iski uski iska uska price cost range charging battery kitna kitni hai kya batao please tell me'.split(' '));
   if (!brands.length && !vehicles.length && text.split(' ').every(w => followupWords.has(w))
     && /\b(price|cost|range|charging|battery)\b/i.test(text)) {
@@ -132,21 +134,24 @@ async function searchVehicles(make = '', model = '') {
 }
 
 function htmlText(html) {
-  return html.replace(/<(script|style|svg|noscript)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, ' ')
+  return html.replace(/<(nav|header|footer)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, ' ')
+    .replace(/<(script|style|svg|noscript)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, ' ')
     .replace(/<[^>]*>/g, '\n').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, ' ')
     .split('\n').map(s => s.trim()).filter(Boolean).join('\n');
 }
 
 async function officialPage(brand) {
-  if (process.env.EV_LIVE_WEB_ENABLED === 'false') return { status: 'disabled' };
-  // URL comes only from the checked-in brand allowlist. User URLs and redirects are never fetched.
-  return cached(`web:${brand.source_url}`, async () => {
+  if (!brand.source_url || process.env.EV_LIVE_WEB_ENABLED === 'false') return { status: 'disabled' };
+  // URL comes only from the checked-in model/brand allowlist. User URLs and redirects are never fetched.
+  return cached(`web:${brand.source_url}:${normalize(brand.model || brand.make)}`, async () => {
     try {
       const response = await fetch(brand.source_url, { redirect: 'error', signal: AbortSignal.timeout(4500),
         headers: { Accept: 'text/html', 'User-Agent': 'EVKnowledgeBot/1.0' } });
       if (!response.ok || !/text\/html/i.test(response.headers.get('content-type') || '')) throw new Error('No readable page');
       const text = htmlText(await readLimited(response, 1_500_000));
+      if (brand.model && ![brand.model, ...(brand.model_aliases || []), brand.model.replace(/\b(electric|ev)\b/gi, '').trim()]
+        .some(name => contains(text, name))) throw new Error('Model not found on official page');
       const lines = text.split('\n');
       const matching = new Set();
       lines.forEach((line, i) => {
@@ -164,6 +169,8 @@ async function officialPage(brand) {
 function canAnswerFromCatalog(question, matches) {
   if (/^(hi|hello|hey|namaste)[!?.\s]*$/i.test(question.trim())) return true;
   if (!matches.vehicles.length) return false;
+  if (matches.vehicles.every(v => v.model_status === 'unverified-name')) return true;
+  if (matches.vehicles.some(v => v.knowledge_status === 'source-linked' && !v.battery_capacity && !v.electric_range)) return false;
   let remaining = ` ${normalize(question)} `;
   const names = [...matches.brands.flatMap(b => [b.make, ...b.aliases]),
     ...matches.vehicles.flatMap(v => [...(v.model_aliases || []), v.model, v.model.replace(/\b(EV|Electric)\b/gi, '').trim()])];
@@ -176,13 +183,13 @@ function canAnswerFromCatalog(question, matches) {
     || matches.vehicles.every(v => v[field]));
 }
 
-async function retrieveKnowledge(question, history = [], { referenceOnly = false } = {}) {
-  const advice = adviceKnowledge(question, history, identifyVehicles);
-  if (advice) return advice;
-  const listing = resolveList(question, history, identifyVehicles);
+async function retrieveKnowledge(question, history = [], { referenceOnly = false, catalogContext = null } = {}) {
+  const listing = resolveList(question, history, identifyVehicles, catalogContext);
   if (listing) return { ...listing, context: JSON.stringify({ policy: catalog.notice, ...listing }),
     brands: [...new Set(listing.vehicles.map(v => v.make.toLowerCase()))],
     sources: [...new Set(listing.vehicles.flatMap(v => [v.source_url, v.price_reference?.source_url]).filter(Boolean))], pages: [], mode: 'catalog', notice: '' };
+  const advice = adviceKnowledge(question, history, identifyVehicles);
+  if (advice) return advice;
   const matches = identifyVehicles(question, history);
   if (referenceOnly || canAnswerFromCatalog(question, matches)) {
     const vehicles = matches.vehicles;
@@ -194,7 +201,7 @@ async function retrieveKnowledge(question, history = [], { referenceOnly = false
   const lookups = matches.brands.slice(0, 2).map(async brand => {
     const selected = matches.vehicles.filter(v => v.make === brand.make);
     const model = selected.length === 1 ? selected[0].model : '';
-    const [search, web] = await Promise.all([searchVehicles(brand.make, model), officialPage(brand)]);
+    const [search, web] = await Promise.all([searchVehicles(brand.make, model), officialPage(selected.length === 1 ? selected[0] : brand)]);
     return { search, web };
   });
   const responses = await Promise.all(lookups);
@@ -215,15 +222,26 @@ function localAnswer(question, knowledge) {
   if (knowledge.intent?.kind === 'list') return listAnswer(question, knowledge);
   const vehicles = knowledge.vehicles || [];
   const current = /price|cost|on road|latest|current|today|aaj|abhi|subsid/i.test(question);
-  if (vehicles.length) return [current ? '**EV price references:**' : '**EV model overview:**',
-    ...vehicles.slice(0, 18).flatMap(v => [`### ${v.make} ${v.model}`, ...[
-      (current || v.price_reference) && priceLine(v),
-      v.electric_range && `range ${v.electric_range}`, v.battery_capacity && `battery ${v.battery_capacity}`,
-      v.charge_power_max && `charging ${v.charge_power_max}`, v.top_speed && `top speed ${v.top_speed}`,
-    ].filter(Boolean).map(detail => `- ${detail}`), ...(!v.electric_range && !v.price_reference ? ['- Detailed specifications need a variant-specific source.'] : [])]),
-    '', 'Reference specifications and advertised prices; model year, market and test cycle can differ. Exact current on-road price is not confirmed here.',
-    current ? 'Which city and variant do you want a quote for?' : 'Which model would you like to compare or explore?',
-  ].join('\n');
+  if (vehicles.length) {
+    const lines = [current ? '**EV price references:**' : '**EV model overview:**'];
+    for (const v of vehicles.slice(0, 18)) {
+      lines.push(`### ${v.make} ${v.model}`, v.description || '');
+      if (v.model_status && v.model_status !== 'reference') lines.push(`- Status: ${v.model_status.replace(/-/g, ' ')}. ${v.data_note || ''}`);
+      lines.push(`- Market: ${v.market || 'confirm region'}`);
+      if (current || v.price_reference) lines.push(`- ${priceLine(v)}`);
+      if (v.pricing_note && current) lines.push(`- ${v.pricing_note}`);
+      for (const [field, label] of [['electric_range','Range'],['battery_capacity','Battery'],['battery_type','Battery chemistry'],['charge_power_max','Peak charging'],['charging_time','Charging time'],['top_speed','Top speed']]) {
+        if (v[field]) lines.push(`- ${label}: ${v[field]}`);
+      }
+      if (!v.electric_range || !v.battery_capacity) lines.push('- This model is recognized; missing specifications need confirmation for its exact variant and model year.');
+      if (v.verified_at) lines.push(`- Reference checked: ${v.verified_at}`);
+      if (v.source_url) lines.push(`[Manufacturer source](${v.source_url})`);
+    }
+    lines.push('', 'Reference specifications and advertised prices; model year, market and test cycle can differ. Exact current on-road price is not confirmed here.');
+    if (knowledge.pages?.length) lines.push('An official page was retrieved. Its current details require variant-specific interpretation; open the manufacturer link for details not in the reference above.');
+    lines.push(current ? 'Which city and variant do you want a quote for?' : 'Which model would you like to compare or explore?');
+    return lines.join('\n');
+  }
   if (/^(hi|hello|hey|namaste)\b/i.test(question)) return 'Namaste! Ask about an EV brand or model, for example “give data of Ather”, “BMW iX1 range” or “Tesla Model Y charging”.';
 
   if (/test.?drive|book/i.test(question)) return 'Select a vehicle in Explore Electric Vehicles and choose Book Test Drive. The team will confirm the requested appointment.';
@@ -232,4 +250,4 @@ function localAnswer(question, knowledge) {
 }
 
 module.exports = { catalog, normalize, canonicalMake, searchCatalog, identifyVehicles, searchVehicles, canAnswerFromCatalog,
-  retrieveKnowledge, localAnswer, htmlText, readLimited, clearCache: () => { cache.clear(); pending.clear(); } };
+  retrieveKnowledge, localAnswer, contextFor, htmlText, readLimited, clearCache: () => { cache.clear(); pending.clear(); } };

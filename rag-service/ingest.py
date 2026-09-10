@@ -1,5 +1,4 @@
 import os
-import shutil
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -7,6 +6,9 @@ from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from catalog_documents import catalog_documents
+from index_paths import new_index, publish_index
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
@@ -17,19 +19,16 @@ load_dotenv(BASE_DIR / ".env", override=True)
 
 
 def load_all_documents():
-    documents = []
+    documents = [Document(**entry) for entry in catalog_documents()]
+    print(f"Loaded shared catalog: {len(documents)} model documents")
 
     if not DATA_DIR.exists():
-        raise FileNotFoundError(f"Data folder nahi mila: {DATA_DIR}")
+        return documents
 
     supported_files = list(DATA_DIR.glob("*.txt"))
     supported_files += list(DATA_DIR.glob("*.md"))
     supported_files += list(DATA_DIR.glob("*.pdf"))
 
-    if not supported_files:
-        raise FileNotFoundError(
-            f"Data folder mein koi .txt, .md ya .pdf file nahi mili: {DATA_DIR}"
-        )
 
     for file_path in supported_files:
         try:
@@ -96,9 +95,8 @@ def create_vector_database():
     print(f"\nTotal documents loaded: {len(documents)}")
     print(f"Total chunks created: {len(chunks)}")
 
-    if CHROMA_DIR.exists():
-        print("Purana Chroma database remove ho raha hai...")
-        shutil.rmtree(CHROMA_DIR)
+    candidate = new_index(CHROMA_DIR)
+    print("Building a new index; the previous working index is preserved.")
 
     print("Mistral embeddings generate ho rahi hain...")
 
@@ -110,11 +108,15 @@ def create_vector_database():
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=str(CHROMA_DIR),
+        persist_directory=str(candidate),
         collection_name="ev_vehicles"
     )
 
-    print("\nChroma vector database successfully create ho gaya.")
+    if len(vector_store.get()["ids"]) != len(chunks):
+        raise RuntimeError("Incomplete index; the previous active index was preserved.")
+    publish_index(CHROMA_DIR, candidate)
+
+    print("\nChroma vector database successfully create ho gaya. Restart the RAG service to use it.")
     print(f"Database location: {CHROMA_DIR}")
 
     brand_files = sorted(

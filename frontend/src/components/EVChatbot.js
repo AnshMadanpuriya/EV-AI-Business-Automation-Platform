@@ -19,9 +19,11 @@ const firstMessage = {
 
 function FormattedMessage({ text }) {
   const formatBold = (line) =>
-    line.split(/(\*\*.*?\*\*)/g).map((part, index) =>
+    line.split(/(\*\*.*?\*\*|\[[^\]]+\]\(https:\/\/[^\s)]+\))/g).map((part, index) =>
       part.startsWith("**") && part.endsWith("**") ? (
         <strong key={index}>{part.slice(2, -2)}</strong>
+      ) : /^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/.test(part) ? (
+        <a key={index} href={part.match(/\]\((.*)\)$/)[1]} target="_blank" rel="noopener noreferrer" style={{ color: "#62d9ff" }}>{part.match(/^\[([^\]]+)/)[1]}</a>
       ) : (
         <React.Fragment key={index}>{part}</React.Fragment>
       )
@@ -78,6 +80,8 @@ export default function EVChatbot() {
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const ragUnavailableUntil = useRef(0);
+  const catalogContextRef = useRef(null);
+  const chatGeneration = useRef(0);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -148,6 +152,9 @@ export default function EVChatbot() {
 
   const clearChat = () => {
     setMessages([firstMessage]);
+    catalogContextRef.current = null;
+    chatGeneration.current += 1;
+    setLoading(false);
     setInput("");
   };
 
@@ -162,6 +169,7 @@ export default function EVChatbot() {
 
     if (!question || loading) return;
 
+    const generation = chatGeneration.current;
     const userMessage = {
       id: Date.now(),
       role: "user",
@@ -189,6 +197,7 @@ export default function EVChatbot() {
       let answerNotice = "";
 
       for (const current of services) {
+        if (generation !== chatGeneration.current) return;
         const controller = new AbortController();
         const timeout = window.setTimeout(
           () => controller.abort(),
@@ -199,15 +208,17 @@ export default function EVChatbot() {
           const response = await fetch(current.url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: question, history, ...(current.catalogOnly ? { catalogOnly: true } : {}) }),
+            body: JSON.stringify({ message: question, history, catalog_context: catalogContextRef.current, ...(current.catalogOnly ? { catalogOnly: true } : {}) }),
             signal: controller.signal,
           });
           const data = await response.json();
+          if (generation !== chatGeneration.current) return;
 
           if (current.status === "rag" && !response.ok && response.status >= 500) ragUnavailableUntil.current = Date.now() + 30000;
           if (response.ok && data[current.answerKey]) {
             if (current.status === "rag") ragUnavailableUntil.current = 0;
             answer = data[current.answerKey];
+            catalogContextRef.current = data.catalog_context || null;
             answerSources = Array.isArray(data.sources) ? data.sources.filter(s => typeof s === "string").slice(0, 8) : [];
             answerNotice = typeof data.notice === "string" ? data.notice : "";
             if (data.mode === "catalog" || data.mode === "local") {
@@ -244,6 +255,7 @@ export default function EVChatbot() {
         },
       ]);
     } catch (error) {
+      if (generation !== chatGeneration.current) return;
       setMessages((previous) => [
         ...previous,
         {
@@ -255,7 +267,7 @@ export default function EVChatbot() {
       ]);
       setService("offline");
     } finally {
-      setLoading(false);
+      if (generation === chatGeneration.current) setLoading(false);
     }
   };
 

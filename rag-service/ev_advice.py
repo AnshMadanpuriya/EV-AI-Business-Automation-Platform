@@ -2,7 +2,7 @@
 import json
 import re
 from pathlib import Path
-from ev_conversation import price_line, inr
+from ev_conversation import price_line, inr, budget_from, subtype_from
 RULES = json.loads((Path(__file__).parent.parent / 'shared/ev-advice.json').read_text(encoding='utf-8'))
 
 
@@ -24,17 +24,6 @@ def amount(vehicle):
     return float((vehicle.get('price_reference') or {}).get('amount_inr') or 0)
 
 
-def budget_from(text):
-    match = re.search(RULES['budget'], text, re.I) or re.fullmatch(r'([\d,]+(?:\.\d+)?)\s*(k|lakh?s?|lacs?|thousand)?[!.? ]*', text.strip(), re.I)
-    if not match:
-        return None
-    groups = match.groups() + (None, None)
-    value = float((groups[0] or groups[2]).replace(',', ''))
-    unit = (groups[1] or groups[3] or '').lower()
-    value *= 100000 if unit.startswith('la') else 1000 if unit in ('k', 'thousand') else 1
-    return int(value) if 1000 <= value <= 100000000 else None
-
-
 def category_from(text, recommendation=False):
     if matches('two', text) or (recommendation and re.search(r'\b(two|2)\s+vehicles?\b', text, re.I)):
         return 'two_wheeler'
@@ -45,7 +34,7 @@ def category_from(text, recommendation=False):
 
 def recommendation_state(question, history, identify):
     def empty(category=None, language='en'):
-        return dict(active=False, category=category, budget=None, criteria='', vehicles=[], language=language)
+        return dict(active=False, category=category, budget=None, vehicle_subtype=None, criteria='', vehicles=[], language=language)
     state = empty()
     turns = [h for h in (history or []) if h.get('role') == 'user'][-10:] + [{'content': question}]
     for turn in turns:
@@ -66,6 +55,8 @@ def recommendation_state(question, history, identify):
         if rec or (category and matches('clarifier', text)) or (state['active'] and clarify):
             state['active'] = True
             state['category'] = category or state['category']
+            if category:
+                state['vehicle_subtype'] = subtype_from(text)
             if budget is not None:
                 state['budget'] = budget
             if explicit:
@@ -82,7 +73,7 @@ def recommendation_answer(state, catalog):
     hi = state['language'] == 'hi'
     category, budget = state['category'], state['budget']
     scope = state['vehicles'] or [v for v in catalog['vehicles'] if 'India' in v.get('market', '')]
-    pool = [v for v in scope if not category or v['vehicle_type'] == category]
+    pool = [v for v in scope if (not category or v['vehicle_type'] == category) and (not state['vehicle_subtype'] or v.get('vehicle_subtype') == state['vehicle_subtype']) and v.get('model_status') not in ['unverified-name','racing-platform','demonstration-reference','announced-reference','prebooking-closed']]
     if not category and not state['vehicles']:
         prefix = (f'{inr(budget)} budget samajh gaya. ' if hi else f'Got it — your budget is {inr(budget)}. ') if budget else ''
         return prefix + ('Scooter compare karna hai ya car?' if hi else 'Are you looking for a scooter or a car?'), []
@@ -146,5 +137,5 @@ def advice_knowledge(question, history, identify, catalog):
         return None
     answer = answer or RULES['answers'][kind][language]
     sources = list(dict.fromkeys(RULES['sources'].get(kind, []) + [url for v in vehicles for url in [v.get('source_url'), v.get('price_reference', {}).get('source_url')] if url]))
-    constraints = dict(category=state['category'], budget_inr=state['budget'], criteria=state['criteria'])
+    constraints = dict(scope_brands=list(dict.fromkeys(v['make'] for v in state['vehicles'])), category=state['category'], vehicle_subtype=state['vehicle_subtype'], budget_inr=state['budget'], criteria=state['criteria'])
     return {'advice_answer': answer, 'fast_answer': True, 'intent': {'kind': kind, **constraints}, 'vehicles': vehicles, 'sources': sources, 'pages': [], 'brands': list(dict.fromkeys(v['make'].lower() for v in vehicles)), 'mode': 'catalog', 'notice': '', 'context': json.dumps({'policy': catalog['notice'], 'constraints': constraints, 'vehicles': vehicles, 'advice': answer})}

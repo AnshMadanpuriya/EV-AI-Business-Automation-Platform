@@ -82,7 +82,7 @@ test('chat serves the requested list and scoped follow-up through the public API
   await withServer(async base => {
     const first = 'Give me 20 list of both two vehicles and four vehicles';
     for (const [message, history, count] of [[first, [], 20],
-      ['which 2 vehicle are availbe from this companies ?', [{ role: 'user', content: first }], 10]]) {
+      ['which 2 vehicle are availbe from this companies ?', [{ role: 'user', content: first }], 20]]) {
       const response = await fetch(`${base}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, history }) });
       const body = await response.json();
@@ -134,5 +134,18 @@ test('public chat and RAG context preserve the reported scooter budget across sh
       }
       history.push({role:'user',content:message}, {role:'assistant',content:body.response});
     }
+  });
+});
+
+test('public chat returns and consumes bounded catalog continuation without long history',async()=>{
+  await withServer(async base=>{
+    async function chat(message,catalog_context){return (await fetch(`${base}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,catalog_context})})).json();}
+    const first=await chat('list 10 scooters');
+    const second=await chat('give or suggesy more ev names',first.catalog_context);
+    assert.ok(first.catalog_context.seen.length);
+    assert.equal(second.catalog_context.vehicle_subtype,'scooter');
+    assert.equal(second.catalog_context.seen.length,new Set([...first.catalog_context.seen,...second.catalog_context.seen]).size);
+    assert.ok(second.catalog_context.seen.length>first.catalog_context.seen.length);
+    assert.match(second.response,/more EV models/);
   });
 });

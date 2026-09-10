@@ -1,21 +1,12 @@
 const catalog = require('../../shared/ev-catalog.json');
 const rules = require('../../shared/ev-advice.json');
-const { priceLine } = require('./evConversation');
+const { priceLine, budgetFrom, subtypeFrom } = require('./evConversation');
 const matches = (key, text) => new RegExp(rules[key], 'i').test(text);
 const capacity = v => Number(String(v.battery_capacity || '').match(/([\d.]+)\s*kWh/i)?.[1]) || 0;
 const range = v => Number(String(v.electric_range || '').match(/[\d.]+/)?.[0]) || 0;
 const amount = v => Number(v.price_reference?.amount_inr) || 0;
 const money = n => `₹${n.toLocaleString('en-IN')}`;
 
-function budgetFrom(text) {
-  const match = text.match(new RegExp(rules.budget, 'i'))
-    || text.trim().match(/^([\d,]+(?:\.\d+)?)\s*(k|lakh?s?|lacs?|thousand)?[!.? ]*$/i);
-  if (!match) return null;
-  const value = Number((match[1] || match[3]).replace(/,/g, ''));
-  const unit = (match[2] || match[4] || '').toLowerCase();
-  const inr = value * (/^la/.test(unit) ? 100000 : /^(k|thousand)$/.test(unit) ? 1000 : 1);
-  return Number.isFinite(inr) && inr >= 1000 && inr <= 100000000 ? inr : null;
-}
 function categoryFrom(text, recommendation = false) {
   return matches('two', text) || (recommendation && /\b(two|2)\s+vehicles?\b/i.test(text)) ? 'two_wheeler'
     : matches('four', text) || (recommendation && /\b(four|4)\s+vehicles?\b/i.test(text)) ? 'four_wheeler' : null;
@@ -24,7 +15,7 @@ function categoryFrom(text, recommendation = false) {
 // Reconstruct a bounded conversation state using USER turns only, never assistant claims.
 // Short clarifications continue the active request; unrelated topics discard its constraints.
 function recommendationState(question, history, identify) {
-  let state = { active: false, category: null, budget: null, criteria: '', vehicles: [], language: 'en' };
+  let state = { active: false, category: null, budget: null, vehicle_subtype: null, criteria: '', vehicles: [], language: 'en' };
   const turns = [...(Array.isArray(history) ? history : []).filter(h => h.role === 'user').slice(-10), { content: question }];
   for (const turn of turns) {
     const text = String(turn.content || '').trim();
@@ -37,15 +28,16 @@ function recommendationState(question, history, identify) {
     const namedReply = explicit.length > 0 && !/\b(show|list|give|data|compare|which|price|prices|range|battery|charging|details|models)\b/i.test(text);
     const clarify = matches('clarifier', text) || (short && (budget !== null || namedReply));
     if (matches('greeting', text) || (!rec && !clarify)) {
-      state = { active: false, category, budget: null, criteria: '', vehicles: [], language: 'en' };
+      state = { active: false, category, budget: null, vehicle_subtype: null, criteria: '', vehicles: [], language: 'en' };
       continue;
     }
     if (category && state.category && category !== state.category) {
-      state = { active: false, category, budget: null, criteria: '', vehicles: [], language: state.language };
+      state = { active: false, category, budget: null, vehicle_subtype: null, criteria: '', vehicles: [], language: state.language };
     }
     if (rec || (category && matches('clarifier', text)) || (state.active && clarify)) {
       state.active = true;
       state.category = category || state.category;
+      if (category) state.vehicle_subtype = subtypeFrom(text);
       if (budget !== null) state.budget = budget;
       if (explicit.length) state.vehicles = explicit;
       if (matches('preference', text) && (/range|battery|charg/i.test(text) || !state.criteria)) state.criteria = text;
@@ -59,7 +51,7 @@ function recommendationAnswer(state) {
   const hi = state.language === 'hi';
   const { category, budget } = state;
   const scope = state.vehicles.length ? state.vehicles : catalog.vehicles.filter(v => /India/.test(v.market || ''));
-  const pool = scope.filter(v => !category || v.vehicle_type === category);
+  const pool = scope.filter(v => (!category || v.vehicle_type === category) && (!state.vehicle_subtype || v.vehicle_subtype === state.vehicle_subtype) && !['unverified-name','racing-platform','demonstration-reference','announced-reference','prebooking-closed'].includes(v.model_status));
   if (!category && !state.vehicles.length) return {
     vehicles: [], answer: `${budget ? (hi ? `${money(budget)} budget samajh gaya. ` : `Got it — your budget is ${money(budget)}. `) : ''}${hi ? 'Scooter compare karna hai ya car?' : 'Are you looking for a scooter or a car?'}`
   };
@@ -117,7 +109,7 @@ function adviceKnowledge(question, history, identify) {
   if (!kind) return null;
   if (!answer) answer = rules.answers[kind][language];
   const sources = [...new Set([...(rules.sources[kind] || []), ...vehicles.flatMap(v => [v.source_url,v.price_reference?.source_url]).filter(Boolean)])];
-  const constraints = { category: state.category, budget_inr: state.budget, criteria: state.criteria };
+  const constraints = { scope_brands: [...new Set(state.vehicles.map(v=>v.make))], category: state.category, vehicle_subtype: state.vehicle_subtype, budget_inr: state.budget, criteria: state.criteria };
   return { advice_answer: answer, fast_answer: true, intent: {kind, ...constraints}, vehicles, sources, pages: [], brands: [...new Set(vehicles.map(v=>v.make.toLowerCase()))], mode: 'catalog', notice: '', context: JSON.stringify({policy:catalog.notice, constraints, vehicles, advice:answer}) };
 }
 module.exports = { adviceKnowledge, budgetFrom, recommendationState };

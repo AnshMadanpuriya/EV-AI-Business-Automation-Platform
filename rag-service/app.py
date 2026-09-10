@@ -29,7 +29,17 @@ class HistoryMessage(BaseModel):
     content: str = Field(min_length=1, max_length=1200)
 
 
+class CatalogContext(BaseModel):
+    version: int = Field(default=1, ge=1, le=1)
+    category: str = Field(pattern="^(both|two_wheeler|four_wheeler)$")
+    brands: list[str] = Field(default_factory=list, max_length=60)
+    vehicle_subtype: str | None = Field(default=None, pattern='^(scooter|motorcycle)$')
+    seen: list[str] = Field(default_factory=list, max_length=200)
+    budget_inr: float | None = Field(default=None, ge=1000, le=100000000, allow_inf_nan=False)
+
+
 class ChatRequest(BaseModel):
+    catalog_context: CatalogContext | None = None
     message: str = Field(
         min_length=1,
         max_length=500
@@ -45,6 +55,7 @@ class ChatResponse(BaseModel):
     mode: str
     sources: list[str] = Field(default_factory=list)
     notice: str = ""
+    catalog_context: dict | None = None
 
 
 @app.get("/health")
@@ -64,14 +75,16 @@ def chat(request: ChatRequest):
     try:
         result = ask_ev_question(
             question,
-            [item.model_dump() for item in request.history]
+            [item.model_dump() for item in request.history],
+            request.catalog_context.model_dump() if request.catalog_context else None
         )
 
         return ChatResponse(
             answer=result["answer"],
             mode=result["mode"],
             sources=result["sources"],
-            notice=result.get("notice", "")
+            notice=result.get("notice", ""),
+            catalog_context=result.get("catalog_context")
         )
 
     except Exception as error:

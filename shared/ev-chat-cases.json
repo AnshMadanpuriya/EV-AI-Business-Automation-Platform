@@ -13,16 +13,15 @@
         "content": "Give me 20 list of both two vehicles and four vehicles"
       }
     ],
-    "count": 10,
-    "two": 10,
+    "count": 20,
+    "two": 20,
     "four": 0
   },
   {
     "question": "Show 20 two-wheelers",
-    "count": 10,
-    "two": 10,
-    "four": 0,
-    "shortfall": true
+    "count": 20,
+    "two": 20,
+    "four": 0
   },
   {
     "question": "list 5 cars",
@@ -38,8 +37,8 @@
         "content": "Ather and TVS models"
       }
     ],
-    "count": 6,
-    "two": 6,
+    "count": 8,
+    "two": 8,
     "four": 0,
     "makes": [
       "Ather",
@@ -48,8 +47,8 @@
   },
   {
     "question": "show BMW two-wheelers",
-    "count": 0,
-    "two": 0,
+    "count": 2,
+    "two": 2,
     "four": 0
   },
   {
@@ -80,5 +79,17 @@
     "count": 2,
     "two": 1,
     "four": 1
+  },
+  {
+    "question": "give or suggesy more ev names",
+    "count": 20,
+    "two": 10,
+    "four": 10
+  },
+  {
+    "question": "show 100 two wheelers",
+    "count": 53,
+    "two": 53,
+    "four": 0
   }
 ]
